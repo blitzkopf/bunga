@@ -1,17 +1,43 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <TimeDisplay msg="Welcome" :time="time" /> 
+    <Bunga  @time="updateTime" />
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import Bunga from './components/Bunga.vue'
+import TimeDisplay from './components/TimeDisplay.vue'
+//import Playbar from './components/Playbar.vue'
+
+import VueGtag from "vue-gtag";
+import Vue from 'vue'
+import { Slider ,Field } from 'buefy'
+import 'buefy/dist/buefy.css'
+
+Vue.use(Slider)
+Vue.use(Field)
+
+Vue.use(VueGtag, {
+  config: { id: "G-00K6EYE0VE" }
+});
 
 export default {
   name: 'App',
+  data: function() {
+    return {
+      time: ""
+    };
+  },
   components: {
-    HelloWorld
+    Bunga,
+    TimeDisplay,
+    //Playbar
+  },  
+  methods: {
+    updateTime(variable) {
+      this.time= variable;
+    }
   }
 }
 </script>
@@ -23,6 +49,7 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  margin-top: 0;
+  border: none;
 }
 </style>
