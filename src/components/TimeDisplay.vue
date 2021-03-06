@@ -7,11 +7,16 @@
 <script>
 
 export default {
-  name: 'TimeDisplay',
-  props: {
-      msg:String,
-      time:Date
-  }
+    name: 'TimeDisplay',
+    props: {
+        msg:String,
+        //time:Date
+    },
+    computed: {
+        time () {
+            return this.$store.state.time;
+        }
+    },
 }
 </script>
 

@@ -20,6 +20,6 @@
                 value1: 6000,
                 value2: 40,
             }
-        }
+        },
     }
 </script>

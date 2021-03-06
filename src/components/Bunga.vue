@@ -111,7 +111,7 @@ export default {
         }
         //animTime = new Date(firstQuakeTime.getTime() + t1* duration);
         var animTime = new Date(this.qParams.firstTime.getTime() + t1* this.qParams.duration);
-        this.$emit("time",animTime);
+        this.$store.commit('setTime',animTime);
         for(let i in this.quakes) {
           let q = this.quakes[i];
           q.setVisParams(animTime,animParams);
