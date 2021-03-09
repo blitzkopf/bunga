@@ -8,7 +8,7 @@ import * as THREE from 'three';
 //import { OrbitControls } from 'https://unpkg.com/three@0.126.0/examples/jsm/controls/OrbitControls.js';
 import { TrackballControls } from 'three-controls';
 
-import { earthRadius , calculatePositions } from '../utils/quake.js'
+import { earthRadius } from '../utils/quake.js'
 //import { loadDataRasmuskr } from '../utils/data.js'
 import { loadMap } from '../utils/map.js'
 
@@ -54,32 +54,6 @@ export default {
       //camera.position.addVectors ( qParams.centerOfMass, new THREE.Vector(10,0,0));
 
     },
-    addQuakes:  function(data) {
-        this.quakes = data;
-        this.qParams=calculatePositions(this.quakes, this.$store.state.animParams);
-        for(let i in this.quakes) {
-          let q = this.quakes[i];
-          let g = new THREE.IcosahedronGeometry(q.size * this.$store.state.animParams.sizeMultiplier,4);
-          let m = new THREE.MeshLambertMaterial({color: 0x00ff00 });
-          let s = new THREE.Mesh(g,m);
-          s.position.copy(q.pos);
-          this.quakes[i].mesh = s;
-          s.visible = false;
-          this.earth.add(s);
-        }
-        /*var COM = new THREE.Object3D();
-        COM.position.set(qParams.centerOfMass);
-        earth.add(COM);*/
-        this.camera.lookAt(this.qParams.centerOfMass);
-        this.camera.position.copy ( new THREE.Vector3(100,0,0).add(this.qParams.centerOfMass) );
-        this.camera.up.copy(this.qParams.centerOfMass.clone().normalize());	
-        
-        this.controls.target.copy(this.qParams.centerOfMass);
-        this.controls.update();
-        this.controls.enablePan = false;
-        this.controls.enableDamping = true;
-
-    },
     setCamera: function() {
         this.camera.lookAt(this.$store.state.qParams.centerOfMass);
         this.camera.position.copy ( new THREE.Vector3(100,0,0).add(this.$store.state.qParams.centerOfMass) );
@@ -91,7 +65,6 @@ export default {
         this.controls.enableDamping = true;
         this.cameraSet = true;
     },
-
     animate: function () {
       requestAnimationFrame( this.animate );
       if('centerOfMass' in  this.$store.state.qParams)  {
@@ -111,8 +84,9 @@ export default {
         //animTime = new Date(firstQuakeTime.getTime() + t1* duration);
         var animTime = new Date(this.$store.state.qParams.firstTime.getTime() + t1* this.$store.state.qParams.duration);
         this.$store.commit('setTime',animTime);
-        for(let i in this.$store.state.quakes) {
-          let q = this.quakes[i];
+        let quakes = this.$store.state.quakes;
+        for(let i in quakes) {
+          let q = quakes[i];
           q.setVisParams(animTime,this.$store.state.animParams);
           //q.mesh.material.update();
           
