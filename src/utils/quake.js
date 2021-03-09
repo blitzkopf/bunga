@@ -35,14 +35,15 @@ export function Quake(lat,lon,depth,time,size,verified) {
 			this.mesh.material.color.setHex(0x000060);
 		}
 	
-		/*  Have yo figure this out later
+		/*  Have yo figure this out later */
+		let scale = 1;
 		if (this.size >= 3) {
-			var scale = 1 / Math.min(0.2+hours/5.0,1);
+			scale = 1 / Math.min(0.2+hours/5.0,1);
 
 		} else  {
-			var scale = 1 / Math.min(0.5+hours/5.0,1);
+			scale = 1 / Math.min(0.5+hours/5.0,1);
 		}
-		this.mesh.scale.set(new THREE.Vector3(2,scale,scale)); */
+		this.mesh.scale.set(scale,scale,scale); 
 	}
 }
 

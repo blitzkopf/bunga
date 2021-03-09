@@ -1,5 +1,5 @@
 <template>
-  <div id="container"></div>
+    <div id="container"></div>
 </template>
 
 <script>
@@ -9,23 +9,10 @@ import * as THREE from 'three';
 import { TrackballControls } from 'three-controls';
 
 import { earthRadius , calculatePositions } from '../utils/quake.js'
-import { loadDataRasmuskr } from '../utils/data.js'
+//import { loadDataRasmuskr } from '../utils/data.js'
 import { loadMap } from '../utils/map.js'
 
-var animParams = {
-	depthScale: 4.0,
-	animLength: 120, // seconds
-	finalSceneLength: 30, //seconds
-	minQuakeSize: 0 ,//
-	sizeMultiplier: .2, //
-	mapdepth: -15, // km
-	flybyRadius: 150, // degrees
-	flybyHeight: -2, //
-	lookAtDepth: 5,
-	rotationSpeed: -1,
-	dispVerifiedOnly: false,
-	greenGiant: true,
-	};
+
 
 export default {
   name: 'Bunga', 
@@ -50,17 +37,16 @@ export default {
       var mearth = new THREE.LineBasicMaterial( { color: 0xff0000, linewidth: 1});
       this.earth  = new THREE.Line( gearth, mearth );
 
-
-
       var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.7 );
       this.scene.add( directionalLight );
       const ambiLight = new THREE.AmbientLight( 0x909090 ); // soft white light
       this.scene.add( ambiLight );
 
       this.scene.add( this.earth );
+      loadMap(this.earth);
+      this.earth.add(this.$store.state.qGroup)
 
-      loadDataRasmuskr("http://isapi.rasmuskr.dk/api/earthquakes/?date=72-hoursago",this.addQuakes);
-
+      //loadDataRasmuskr("http://isapi.rasmuskr.dk/api/earthquakes/?date=72-hoursago",this.addQuakes);
 
       this.timeStart = new Date().getTime();
 
@@ -70,10 +56,10 @@ export default {
     },
     addQuakes:  function(data) {
         this.quakes = data;
-        this.qParams=calculatePositions(this.quakes,animParams);
+        this.qParams=calculatePositions(this.quakes, this.$store.state.animParams);
         for(let i in this.quakes) {
           let q = this.quakes[i];
-          let g = new THREE.IcosahedronGeometry(q.size * animParams.sizeMultiplier,4);
+          let g = new THREE.IcosahedronGeometry(q.size * this.$store.state.animParams.sizeMultiplier,4);
           let m = new THREE.MeshLambertMaterial({color: 0x00ff00 });
           let s = new THREE.Mesh(g,m);
           s.position.copy(q.pos);
@@ -84,7 +70,6 @@ export default {
         /*var COM = new THREE.Object3D();
         COM.position.set(qParams.centerOfMass);
         earth.add(COM);*/
-        loadMap(this.earth);
         this.camera.lookAt(this.qParams.centerOfMass);
         this.camera.position.copy ( new THREE.Vector3(100,0,0).add(this.qParams.centerOfMass) );
         this.camera.up.copy(this.qParams.centerOfMass.clone().normalize());	
@@ -95,26 +80,40 @@ export default {
         this.controls.enableDamping = true;
 
     },
+    setCamera: function() {
+        this.camera.lookAt(this.$store.state.qParams.centerOfMass);
+        this.camera.position.copy ( new THREE.Vector3(100,0,0).add(this.$store.state.qParams.centerOfMass) );
+        this.camera.up.copy(this.$store.state.qParams.centerOfMass.clone().normalize());	
+        
+        this.controls.target.copy(this.$store.state.qParams.centerOfMass);
+        this.controls.update();
+        this.controls.enablePan = false;
+        this.controls.enableDamping = true;
+        this.cameraSet = true;
+    },
 
     animate: function () {
       requestAnimationFrame( this.animate );
-      if(this.qParams) {
+      if('centerOfMass' in  this.$store.state.qParams)  {
+        if ( ! this.cameraSet) {
+          this.setCamera();
+        }
         var timeNow;
 
 
         timeNow = new Date().getTime();
         //timeDelta = timeNow-timeLast;
         //t1 = ((timeNow - timeStart) % ((animParams.animLength+animParams.finalSceneLength)*1000))/(animParams.animLength*1000);
-        let t1 = (timeNow - this.timeStart) / ((animParams.animLength)*1000);
+        let t1 = (timeNow - this.timeStart) / ((this.$store.state.animParams.animLength)*1000);
         if( t1 > 1.0) {
           t1 = 1.0;
         }
         //animTime = new Date(firstQuakeTime.getTime() + t1* duration);
-        var animTime = new Date(this.qParams.firstTime.getTime() + t1* this.qParams.duration);
+        var animTime = new Date(this.$store.state.qParams.firstTime.getTime() + t1* this.$store.state.qParams.duration);
         this.$store.commit('setTime',animTime);
-        for(let i in this.quakes) {
+        for(let i in this.$store.state.quakes) {
           let q = this.quakes[i];
-          q.setVisParams(animTime,animParams);
+          q.setVisParams(animTime,this.$store.state.animParams);
           //q.mesh.material.update();
           
         }
@@ -131,6 +130,9 @@ export default {
       this.renderer.render(this.scene, this.camera);
       
     }
+  },
+  created() {
+    this.$store.dispatch('loadQuakes');
   },
   mounted() {
       this.init();
@@ -158,5 +160,7 @@ a {
 }
 .container{
   margin: 0;
+  height: 900px ;
+  width: 1900px;
 }
 </style>

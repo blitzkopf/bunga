@@ -1,5 +1,7 @@
 import {   cart2Sphere, sphere2Cart } from '../utils/quake.js'
 import * as THREE from 'three';
+//import store from '../store'
+
 
 // instantiate a loader
 //const loader = new THREE.TextureLoader();
@@ -39,6 +41,12 @@ export function loadMap(earth) {
         //'test.jpg',
         // onLoad callback
         function ( imageBitmap ) {
+            /*const ctx = document.createElement('canvas').getContext('2d');
+            ctx.canvas.width = imageBitmap.width;
+            ctx.canvas.height = imageBitmap.height;
+            ctx.fillStyle = '#FFF';
+            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            const texture = new THREE.CanvasTexture(ctx.canvas);*/
             const texture = new THREE.CanvasTexture( imageBitmap );
             
     /*	// onLoad callback
