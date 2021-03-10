@@ -2,13 +2,14 @@
   <div id="app">
     <TimeDisplay msg="Welcome" :time="time" /> 
     <Bunga  @time="updateTime" />
+    <Playbar />
   </div>
 </template>
 
 <script>
 import Bunga from './components/Bunga.vue'
 import TimeDisplay from './components/TimeDisplay.vue'
-//import Playbar from './components/Playbar.vue'
+import Playbar from './components/Playbar.vue'
 
 import VueGtag from "vue-gtag";
 import Vue from 'vue'
@@ -32,7 +33,7 @@ export default {
   components: {
     Bunga,
     TimeDisplay,
-    //Playbar
+    Playbar
   },  
   methods: {
     updateTime(variable) {

@@ -14,7 +14,7 @@ export default {
     },
     computed: {
         time () {
-            return this.$store.state.time;
+            return this.$store.state.animTime;
         }
     },
 }
@@ -22,7 +22,7 @@ export default {
 
 <style>
 #timer{
-	//background-color:#000;
+	/*background-color:#000; */
 	color:#fff;
 	z-index:0;
 	position: relative;

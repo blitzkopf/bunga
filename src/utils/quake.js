@@ -68,11 +68,10 @@ export function calculatePositions(qList,animParams) {
 	//var mr = vec3.create([0,0,0]);
 	var mr= new THREE.Vector3(0,0,0);
 
-	for(var i in qList) {
-		var q  = qList[i];
+	for(var q of qList) {
 
 		//qList[i].pos = sphere2Cart(q.lat, q.lon, earthRadius - animParams.depthScale*q.depth)
-		qList[i].pos = sphere2Cart(q.lat,q.lon,earthRadius - animParams.depthScale*q.depth);
+		q.pos = sphere2Cart(q.lat,q.lon,earthRadius - animParams.depthScale*q.depth);
 		//new THREE.Vector3().setFromSpherical(new THREE.Spherical(earthRadius - animParams.depthScale*q.depth,THREE.Math.degToRad( q.lat) , THREE.Math.degToRad( q.lon)));
 
 

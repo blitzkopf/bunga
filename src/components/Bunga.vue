@@ -11,6 +11,8 @@ import { TrackballControls } from 'three-controls';
 import { earthRadius } from '../utils/quake.js'
 //import { loadDataRasmuskr } from '../utils/data.js'
 import { loadMap } from '../utils/map.js'
+//import { mapGetters } from 'vuex'
+
 
 
 
@@ -30,9 +32,6 @@ export default {
       //const controls = new OrbitControls( camera, renderer.domElement );
       this.controls = new TrackballControls( this.camera, this.renderer.domElement );
 
-      /*var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-      var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-      var cube = new THREE.Mesh( geometry, material );*/
       var gearth = new THREE.SphereGeometry(earthRadius, 360, 180 );
       var mearth = new THREE.LineBasicMaterial( { color: 0xff0000, linewidth: 1});
       this.earth  = new THREE.Line( gearth, mearth );
@@ -48,7 +47,8 @@ export default {
 
       //loadDataRasmuskr("http://isapi.rasmuskr.dk/api/earthquakes/?date=72-hoursago",this.addQuakes);
 
-      this.timeStart = new Date().getTime();
+      //this.timeStart = new Date().getTime();
+      this.$store.commit('startTime');
 
       //camera.position.z = earthRadius+10;
       //camera.position.addVectors ( qParams.centerOfMass, new THREE.Vector(10,0,0));
@@ -71,8 +71,7 @@ export default {
         if ( ! this.cameraSet) {
           this.setCamera();
         }
-        var timeNow;
-
+        /*var timeNow;
 
         timeNow = new Date().getTime();
         //timeDelta = timeNow-timeLast;
@@ -83,13 +82,14 @@ export default {
         }
         //animTime = new Date(firstQuakeTime.getTime() + t1* duration);
         var animTime = new Date(this.$store.state.qParams.firstTime.getTime() + t1* this.$store.state.qParams.duration);
-        this.$store.commit('setTime',animTime);
+        this.$store.commit('setTime',animTime); */
+        this.$store.commit('newFrame');
+
         let quakes = this.$store.state.quakes;
-        for(let i in quakes) {
-          let q = quakes[i];
-          q.setVisParams(animTime,this.$store.state.animParams);
+        for(const q of quakes) {
+          q.setVisParams(this.$store.state.animTime,this.$store.state.animParams);
           //q.mesh.material.update();
-          
+          //q.mixer.setTime(animTime.getTime()/1000);         
         }
         //		if(! qParams.centerOfMass === undefined) {
         //		}
