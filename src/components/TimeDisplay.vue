@@ -14,7 +14,7 @@ export default {
     },
     computed: {
         time () {
-            return this.$store.state.animTime;
+            return new Date(this.$store.state.animTime);
         }
     },
 }

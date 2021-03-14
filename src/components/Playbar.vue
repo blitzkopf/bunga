@@ -1,7 +1,8 @@
 <template>
     <section id="slider">
-        <b-field label="Custom format (bypass locale)">
-            <b-slider v-model="animTime" :custom-formatter="(val) => formatTime(val)" :tooltip="false" indicator :max="1615335331000" :min="1615114938000"></b-slider>
+        <b-field id="timer2" v-bind:label="displayTime">
+            <b-slider v-model="animTime" :custom-formatter="(val) => formatTime(val)" :tooltip="false" indicator  locale="en-GB"
+                v-bind:min="firstTime" v-bind:max="lastTime"></b-slider>
         </b-field>
     </section>
 </template>
@@ -19,10 +20,23 @@
             }
         },
         computed: {
-            animTime: function () {
-
-                return this.$store.state.animTime.getTime() ;
+            animTime: {
+                get () { 
+                    return this.$store.state.animTime ;
+                },
+                set (value) { 
+                    this.$store.commit('setAnimTime',value);
+                },
             },
+            firstTime () {
+                return this.$store.state.qParams.firstTime;
+            },
+            lastTime () {
+                return this.$store.state.qParams.lastTime;
+            },
+            displayTime () {
+                return new Date(this.$store.state.animTime).toLocaleString('en-GB');
+            }
        
         },
         methods: {
@@ -42,5 +56,8 @@
 	/*width:600px;*/
 	height:0px;
 	margin: 0;
+}
+#timer2 {
+    color:#fff;
 } 
 </style>

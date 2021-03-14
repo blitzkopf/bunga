@@ -1,4 +1,4 @@
-import {   cart2Sphere, sphere2Cart } from '../utils/quake.js'
+import {   cart2Geo, geo2Cart } from '../utils/quake.js'
 import * as THREE from 'three';
 //import store from '../store'
 
@@ -8,17 +8,17 @@ import * as THREE from 'three';
 const loader = new THREE.ImageBitmapLoader();
 
 export function loadMap(earth) {
-	let depth=6731-4
+	let depth=6731-25
 	let box= {
 			"p1": [64.25,-24.88], // nv
 			"p2": [62.9,-24.6],   // sv
 			"p3": [64.35,-21.1],  // ne
 			"p4": [63.0,-21.0]    // se
 		};
-	let	p1 = sphere2Cart(box.p1[0],box.p1[1],1);
-	let p2 = sphere2Cart(box.p2[0],box.p2[1],1);
-	let p3 = sphere2Cart(box.p3[0],box.p3[1],1);
-	let p4 = sphere2Cart(box.p4[0],box.p4[1],1);
+	let	p1 = geo2Cart(box.p1[0],box.p1[1],1);
+	let p2 = geo2Cart(box.p2[0],box.p2[1],1);
+	let p3 = geo2Cart(box.p3[0],box.p3[1],1);
+	let p4 = geo2Cart(box.p4[0],box.p4[1],1);
 	/*let vertices = new Float32Array( [
 	     p3.x,  p3.y,  p3.z,
          p4.x,  p4.y,  p4.z,
@@ -54,7 +54,7 @@ export function loadMap(earth) {
             // in this example we create the material when the texture is loaded
             const material = new THREE.MeshBasicMaterial( {
                 map: texture,
-                opacity: 0.6,
+                opacity: 0.3,
                 transparent: true,
                 side: THREE.DoubleSide 
             } );
@@ -63,9 +63,9 @@ export function loadMap(earth) {
             let pos = geometry.getAttribute('position');
             let uv = new Float32Array(pos.count * 2);
             for( let i=0;i<pos.count;i++) {
-                let p = cart2Sphere(pos.array[3*i],pos.array[3*i+1],pos.array[3*i+2]);
-                let u = (p.phi - 64.35) / ( 62.9 - 64.35);
-                let v = (p.theta - -24.88) / ( -21.0 - -24.88);
+                let p = cart2Geo(pos.array[3*i],pos.array[3*i+1],pos.array[3*i+2]);
+                let u = (p.lat - 64.35) / ( 62.9 - 64.35);
+                let v = (p.lon - -24.88) / ( -21.0 - -24.88);
                 uv[2*i ] = v;
                 uv[2*i +1] = u;
 
