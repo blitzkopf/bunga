@@ -1,24 +1,33 @@
 import {   cart2Geo, geo2Cart } from '../utils/quake.js'
+import * as L from 'leaflet';
+
 import * as THREE from 'three';
 //import store from '../store'
 
 
 // instantiate a loader
 //const loader = new THREE.TextureLoader();
-const loader = new THREE.ImageBitmapLoader();
+//const loader = new THREE.ImageBitmapLoader();
 
-export function loadMap(earth) {
+export function loadMap(earth,canvas,map) {
 	let depth=6731-30
-	let box= {
+
+    let box = {
+            "p1": map.layerPointToLatLng(L.point(1,1)),     // nv
+			"p2": map.layerPointToLatLng(L.point(1,512)),   // sv
+			"p3": map.layerPointToLatLng(L.point(512,1)),   // ne
+			"p4": map.layerPointToLatLng(L.point(512,512)), // se
+    }
+/*    let box= {
 			"p1": [64.25,-24.88], // nv
 			"p2": [62.9,-24.6],   // sv
 			"p3": [64.35,-21.1],  // ne
 			"p4": [63.0,-21.0]    // se
-		};
-	let	p1 = geo2Cart(box.p1[0],box.p1[1],1);
-	let p2 = geo2Cart(box.p2[0],box.p2[1],1);
-	let p3 = geo2Cart(box.p3[0],box.p3[1],1);
-	let p4 = geo2Cart(box.p4[0],box.p4[1],1);
+		};*/
+	let	p1 = geo2Cart(box.p1.lat,box.p1.lng,1);
+	let p2 = geo2Cart(box.p2.lat,box.p2.lng,1);
+	let p3 = geo2Cart(box.p3.lat,box.p3.lng,1);
+	let p4 = geo2Cart(box.p4.lat,box.p4.lng,1);
 	/*let vertices = new Float32Array( [
 	     p3.x,  p3.y,  p3.z,
          p4.x,  p4.y,  p4.z,
@@ -34,58 +43,37 @@ export function loadMap(earth) {
 		p3.x,  p3.y,  p3.z,
 		p4.x,  p4.y,  p4.z,
 	];
-    // load a resource
-    loader.load(
-        // resource URL
-        require('../assets/reykjaneshryggur.png'),
-        //'test.jpg',
-        // onLoad callback
-        function ( imageBitmap ) {
-            /*const ctx = document.createElement('canvas').getContext('2d');
-            ctx.canvas.width = imageBitmap.width;
-            ctx.canvas.height = imageBitmap.height;
-            ctx.fillStyle = '#FFF';
-            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-            const texture = new THREE.CanvasTexture(ctx.canvas);*/
-            const texture = new THREE.CanvasTexture( imageBitmap );
-            
-    /*	// onLoad callback
-        function ( texture ) {*/
-            // in this example we create the material when the texture is loaded
-            const material = new THREE.MeshBasicMaterial( {
-                map: texture,
-                opacity: 0.3,
-                transparent: true,
-                side: THREE.DoubleSide 
-            } );
-            //let geometry = new THREE.PlaneGeometry( 5, 20, 32 );
-            const geometry = new THREE.PolyhedronGeometry( vertices, [2,3,1 , 1,0,2 ], depth, 4 );
-            let pos = geometry.getAttribute('position');
-            let uv = new Float32Array(pos.count * 2);
-            for( let i=0;i<pos.count;i++) {
-                let p = cart2Geo(pos.array[3*i],pos.array[3*i+1],pos.array[3*i+2]);
-                let u = (p.lat - 64.35) / ( 62.9 - 64.35);
-                let v = (p.lon - -24.88) / ( -21.0 - -24.88);
-                uv[2*i ] = v;
-                uv[2*i +1] = u;
+    const texture = new THREE.CanvasTexture(canvas);
 
-            }
-            geometry.setAttribute( 'uv', new THREE.BufferAttribute( uv, 2 ) );
-            
-            //let geometry = new THREE.BufferGeometry();
-            // itemSize = 3 because there are 3 values (components) per vertex
-            //geometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
-            let plane = new THREE.Mesh( geometry, material );
-            //plane.position.copy(qParams.centerOfMass);
-            earth.add( plane );
-        },
+    const material = new THREE.MeshBasicMaterial( {
+        map: texture,
+        opacity: 0.3,
+        transparent: true,
+        side: THREE.DoubleSide 
+    } );
 
-        // onProgress callback currently not supported
-        undefined,
+    const geometry = new THREE.PolyhedronGeometry( vertices, [2,3,1 , 1,0,2 ], depth, 4 );
 
-        // onError callback
-        function ( err ) {
-            console.error( 'An error happened.' + err );
-        }
-    );
+    let pos = geometry.getAttribute('position');
+    let uv = new Float32Array(pos.count * 2);
+    for( let i=0;i<pos.count;i++) {
+        let p = cart2Geo(pos.array[3*i],pos.array[3*i+1],pos.array[3*i+2]);
+        /*let u = (p.lat - box.p1.lat) / ( box.p4.lat - box.p1.lat);
+        let v = (p.lon - box.p1.lng) / (box.p4.lng - box.p1.lng);*/
+        let vu = map.latLngToLayerPoint(L.latLng(p.lat,p.lon));
+        uv[2*i ] = vu.x/512;
+        uv[2*i +1] = 1.0-vu.y/512;
+
+    }
+    geometry.setAttribute( 'uv', new THREE.BufferAttribute( uv, 2 ) );
+    
+    //let geometry = new THREE.BufferGeometry();
+    // itemSize = 3 because there are 3 values (components) per vertex
+    //geometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+    let plane = new THREE.Mesh( geometry, material );
+    //plane.position.copy(qParams.centerOfMass);
+    earth.add( plane );
+
+    /*let ll = this.mymap.layerPointToLatLng(L.point(1,1));
+    console.log(`lat : ${ll.lat}  lon:${ll.lng}`);            */
 }

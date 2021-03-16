@@ -14,9 +14,6 @@
             return {
                 format: "raw",
                 locale: undefined, // Browser locale
-
-                value1: 6000,
-                value2: 40,
             }
         },
         computed: {

@@ -46,7 +46,9 @@ export default new Vuex.Store({
 
             let mplier = state.qParams.duration / state.animParams.animLength
             state.timeLast=timeNow;
-            state.animTime += timeDelta * mplier*0.001;
+            if( state.animTime < state.qParams.lastTime ) {
+                state.animTime += timeDelta * mplier*0.001;
+            }
             /*let t1 = (timeNow - state.timeStart) / ((state.animParams.animLength)*1000);
             if( t1 > 1.0) {
               t1 = 1.0;

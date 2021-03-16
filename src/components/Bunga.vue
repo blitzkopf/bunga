@@ -1,5 +1,5 @@
 <template>
-  <div id="container" @mousemove="mouseMove" class="content">
+  <div id="container" class="content">
     <b-sidebar
       type="is-light"
       :fullheight="false"
@@ -23,6 +23,11 @@
   </table>
 
     </b-sidebar>
+    <Mapper @mapLoaded="loadMapHandler"/>
+  <div id="footer" class="content has-text-centered" >
+    <span class="credit-list">Created by <a href="mailto:blitzkopf@gmail.com">Yngvi Þór</a> using Three.js, data provided by <a href="http://www.rasmuskr.dk" target="_blank">RasmusKr</a> and <a href="https://www.vedur.is/"> Veðurstofa Íslands </a></span>
+  <span   v-html="attribution" /> 
+  </div>
     </div>
 </template>
 
@@ -32,16 +37,18 @@ import axios from "axios";
 import VueAxios from "vue-axios";
 import * as THREE from 'three';
 import { Sidebar } from 'buefy';
+import Mapper from './Mapper.vue'
+
 
 Vue.use(Sidebar);
+Vue.use(Mapper);
+
 
 //import { OrbitControls } from 'https://unpkg.com/three@0.126.0/examples/jsm/controls/OrbitControls.js';
 import { TrackballControls } from 'three-controls';
 
 import { earthRadius , loadQuakes} from '../utils/quake.js'
-//import { loadDataRasmuskr } from '../utils/data.js'
 import { loadMap } from '../utils/map.js'
-//import { mapGetters } from 'vuex'
 
 Vue.use(VueAxios,axios);
 
@@ -53,8 +60,12 @@ export default {
     return {
         showDetail: false,
         qDetail: {loc_info:{name:''}},
+        attribution: ''
     }
   },
+  components: {
+    Mapper,
+  },  
   methods: {
     init: function() {
     
@@ -95,7 +106,7 @@ export default {
 
       var gearth = new THREE.SphereGeometry(earthRadius, 360, 180 );
       const wireframe = new THREE.WireframeGeometry( gearth );
-      var mearth = new THREE.LineBasicMaterial( { color: 0xff0000, linewidth: 1});
+      var mearth = new THREE.LineBasicMaterial( { color: 0x900090, linewidth: .5});
       //this.earth  = new THREE.Line( gearth, mearth );
       this.earth  = new THREE.Line( wireframe, mearth );
 
@@ -105,8 +116,7 @@ export default {
       this.scene.add( ambiLight );
 
       this.scene.add( this.earth );
-      loadMap(this.earth);
-
+    
       //loadDataRasmuskr("http://isapi.rasmuskr.dk/api/earthquakes/?date=72-hoursago",this.addQuakes);
 
       //this.timeStart = new Date().getTime();
@@ -115,6 +125,12 @@ export default {
       //camera.position.z = earthRadius+10;
       //camera.position.addVectors ( qParams.centerOfMass, new THREE.Vector(10,0,0));
 
+    },
+    loadMapHandler: function(canvas,map) {
+      let attr='';
+      map.eachLayer(function(layer)  {attr =layer.getAttribution();});
+      this.attribution = attr;
+      loadMap(this.earth,canvas,map);
     },
     setCamera: function() {
         this.camera.lookAt(this.$store.state.qParams.centerOfMass);
@@ -134,18 +150,7 @@ export default {
     animate: function () {
       requestAnimationFrame( this.animate );
       if('centerOfMass' in  this.$store.state.qParams)  {
-        /*var timeNow;
 
-        timeNow = new Date().getTime();
-        //timeDelta = timeNow-timeLast;
-        //t1 = ((timeNow - timeStart) % ((animParams.animLength+animParams.finalSceneLength)*1000))/(animParams.animLength*1000);
-        let t1 = (timeNow - this.timeStart) / ((this.$store.state.animParams.animLength)*1000);
-        if( t1 > 1.0) {
-          t1 = 1.0;
-        }
-        //animTime = new Date(firstQuakeTime.getTime() + t1* duration);
-        var animTime = new Date(this.$store.state.qParams.firstTime.getTime() + t1* this.$store.state.qParams.duration);
-        this.$store.commit('setTime',animTime); */
         this.$store.commit('newFrame');
 
         let quakes = this.quakes;
@@ -157,6 +162,8 @@ export default {
         //		if(! qParams.centerOfMass === undefined) {
         //		}
         this.controls.update();
+        this.camera.up.copy(this.camera.position.clone().normalize());	
+
         // update the picking ray with the camera and mouse position
         this.raycaster.setFromCamera( this.mouse, this.camera );
 
@@ -214,9 +221,14 @@ a {
   margin: 0;
 }
 .qi-desc {
-  style: bold;
+  font-weight: bold;
 }
 .qi-detail {
   text-align: right;
+}
+#footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
 }
 </style>

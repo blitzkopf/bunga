@@ -31,7 +31,6 @@ export default {
   },
   components: {
     Bunga,
-    //TimeDisplay,
     Playbar
   },  
   methods: {
