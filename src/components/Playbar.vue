@@ -1,6 +1,6 @@
 <template>
     <section id="slider">
-        <b-field id="timer2" v-bind:label="displayTime">
+        <b-field id="timer" v-bind:label="displayTime">
             <b-slider v-model="animTime" :custom-formatter="(val) => formatTime(val)" :tooltip="false" indicator  locale="en-GB"
                 v-bind:min="firstTime" v-bind:max="lastTime"></b-slider>
         </b-field>
@@ -50,14 +50,17 @@
 <style>
 #slider{
 	/*background-color:#000; */
-	color:#000;
-	z-index:0;
+	/*z-index:0;*/
 	position: relative;
 	/*width:600px;*/
 	height:0px;
 	margin: 0;
 }
-#timer2 {
+.b-slider.tooltip-content{
+	color:#000;
+}
+
+#timer .label {
     color:#fff;
 } 
 </style>

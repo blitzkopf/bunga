@@ -8,7 +8,7 @@ import * as THREE from 'three';
 const loader = new THREE.ImageBitmapLoader();
 
 export function loadMap(earth) {
-	let depth=6731-25
+	let depth=6731-30
 	let box= {
 			"p1": [64.25,-24.88], // nv
 			"p2": [62.9,-24.6],   // sv

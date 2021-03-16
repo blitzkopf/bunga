@@ -83,6 +83,7 @@ export default {
           this.qGroup.add(q.mesh);
         }
         this.earth.add(this.qGroup);
+        this.setCamera();
 
       }) /*.
         catch(error => {
@@ -133,9 +134,6 @@ export default {
     animate: function () {
       requestAnimationFrame( this.animate );
       if('centerOfMass' in  this.$store.state.qParams)  {
-        if ( ! this.cameraSet) {
-          this.setCamera();
-        }
         /*var timeNow;
 
         timeNow = new Date().getTime();
@@ -165,13 +163,15 @@ export default {
         // calculate objects intersecting the picking ray
         const intersects = this.raycaster.intersectObjects( this.qGroup.children );
 
-        if(intersects.length > 0 ) {
+        if(intersects.length > 0 && this.last_intersect != intersects[0]) {
           intersects[ 0 ].object.material.color.set( 0xffffff );
           this.qDetail = intersects[0].object.quake;
           this.showDetail = true;
           intersects[ 0 ].object.material.color.set( 0xffffff );
+          this.last_intersect = intersects[0];
         } else {
           this.showDetail = false;
+          this.last_intersect = null;
         }
         /*		earth.rotation.x += 0.00001;
         earth.rotation.y += 0.00001;*/
