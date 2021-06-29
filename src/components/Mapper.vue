@@ -5,6 +5,7 @@
 <script>
 import * as L from 'leaflet';
 import { mapState } from 'vuex';
+import {cart2Geo } from '../utils/quake'
 
 export default {
   name: 'Mapper',
@@ -16,8 +17,8 @@ export default {
     createCanvas: function() {
 
       var canvas = document.createElement('canvas');
-      canvas.height=512;
-      canvas.width=512;
+      canvas.height=1024;
+      canvas.width=1024;
       var ctx = canvas.getContext('2d');
 
       var x  = document.getElementsByClassName("leaflet-tile-container");
@@ -30,15 +31,55 @@ export default {
       this.$emit('mapLoaded',canvas,this.mymap);
     },
 
-    mapsetup: function() {
+    mapsetup: function(mapView) {
     /* this.div = document.createElement('div');
       this.div.height=512;
       this.div.width=512;*/
       
       this.mymap = L.map('mapid', {
         renderer: L.canvas()
-      }).setView([63.863, -22.338], 9);
-      L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+      }).setView([mapView.lat,mapView.lon], 8);
+       
+      /*L.tileLayer('https://gis.lmi.is/geoserver/gwc/service/wmts?SERVICE=WMTS&REQUEST=GetCapabilities', {
+          attribution: 'Map data &copy; <a href="https://www.lmi.org/is">Landmælingar Íslands</a>',
+          layers:'LMI_Kort_3857',
+          //layers:'LMI_hillshade,LMI_Kort,Ornefni_an_mannvirkja',
+          tileSize: 1024,
+          crossOrigin: "anonymous"
+      } 
+      ).addTo(this.mymap).on('load',this.createCanvas);
+      */
+
+     /*L.tileLayer('https://gis.lmi.is/mapcache/wmts?SERVICE=WMTS&REQUEST=GetCapabilities', {
+          attribution: 'Map data &copy; <a href="https://www.lmi.org/is">Landmælingar Íslands</a>',
+          layers:'LMI_Kort_3857',
+          //layers:'LMI_hillshade,LMI_Kort,Ornefni_an_mannvirkja',
+          tileSize: 1024,
+          crossOrigin: "anonymous"
+      } 
+      ).addTo(this.mymap).on('load',this.createCanvas);*/
+     
+     L.tileLayer('https://gis.lmi.is/mapcache/wmts/1.0.0/LMI_Kort_3857/default/{id}/{z}/{y}/{x}.png', {
+          attribution: 'Map data &copy; <a href="https://www.lmi.org/is">Landmælingar Íslands</a>',
+          id:'EPSG:3857',
+          layers:'LMI_Kort_3857',
+          //layers:'LMI_hillshade,LMI_Kort,Ornefni_an_mannvirkja',
+          tileSize: 256,
+          //zoomOffset: -2,
+
+          crossOrigin: "anonymous"
+      } 
+      ).addTo(this.mymap).on('load',this.createCanvas);
+      
+     /* L.tileLayer.wms('https://gis.lmi.is/geoserver/wfs', {
+          attribution: 'Map data &copy; <a href="https://www.lmi.org/is">Landmælingar Íslands</a>',
+          layers:'Ornefni_an_mannvirkja',
+          //layers:'LMI_hillshade,LMI_Kort,Ornefni_an_mannvirkja',
+          tileSize: 1024,
+          crossOrigin: "anonymous"
+      } 
+      ).addTo(this.mymap).on('load',this.createCanvas);
+    *//*  L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
           attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
           maxZoom: 18,
           id: 'mapbox/outdoors-v11',
@@ -46,7 +87,8 @@ export default {
           zoomOffset: -1,
           accessToken: 'pk.eyJ1IjoiYmxpdHprb3BmIiwiYSI6ImNrbThpd3Y2eTBlNzAyd3BobXQydTlxbGUifQ.c8CmH2MD4SzV_4HnMAIJlw',
           crossOrigin: "anonymous"
-      }).addTo( this.mymap ).on('load',this.createCanvas);
+      }).addTo( this.mymap ).on('load',this.createCanvas); */
+
     
     }  
 
@@ -58,7 +100,7 @@ export default {
 
       // Do whatever makes sense now
       if (Object.keys(newValue).length !== 0 ) {
-        this.mapsetup();
+        this.mapsetup(cart2Geo(newValue.centerOfMass.x,newValue.centerOfMass.y,newValue.centerOfMass.z));
       }
     },
   }

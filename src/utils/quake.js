@@ -55,7 +55,9 @@ export function Quake(lat,lon,depth,time,size,verified,quality,loc_info) {
 export function loadQuakes( data,animParams) {
 	let quakes=[];
 	for (const q of  data.items) {
-		quakes.push(new Quake(q.lat,q.long,q.depth,q.date*1000,q.size,q.verified,q.quality,{ dir:q.loc_dir, dist:q.loc_dist, name:q.loc_name }));
+		if (q.size > 0){
+			quakes.push(new Quake(q.lat,q.long,q.depth,q.date*1000,q.size,q.verified,q.quality,{ dir:q.loc_dir, dist:q.loc_dist, name:q.loc_name }));
+		}
 	}
 	let qParams=calculatePositions(quakes,animParams);
 	/* figure out how to get this out of state */

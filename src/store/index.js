@@ -24,7 +24,7 @@ export default new Vuex.Store({
         },
         timeStart:0,
         timeLast:Date.now(),
-        animTime:Date.now()-72*60*60*1000
+        animTime:Date.now()-504*60*60*1000
     }, 
     mutations: {
         SAVE_QPARAMS(state,qParams) {

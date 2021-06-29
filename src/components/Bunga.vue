@@ -53,6 +53,7 @@ import { loadMap } from '../utils/map.js'
 Vue.use(VueAxios,axios);
 
 Vue.axios.defaults.baseURL = "https://isapi.rasmuskr.dk/api/"; // earthquakes/?date=72-hoursago
+//Vue.axios.defaults.baseURL = "https://api.vedur.is/skjalftalisa/v1/quake/"; // array/
 
 export default {
   name: 'Bunga', 
@@ -85,6 +86,13 @@ export default {
 
 
       Vue.axios.get('earthquakes/',{params:{date:'72-hoursago'}}).then( result=> {
+      /*Vue.axios.post('array/',{crossDomain: true,params:
+        {"start_time":"2021-03-13 03:31:00","end_time":"2021-03-20 03:31:00",
+        "depth_min":0,"depth_max":25,"size_min":3,"size_max":7,
+        "magnitude_preference":["Mlw","Autmag"],"event_type":["qu"],"originating_system":["SIL picks"],
+        "area":[[68,-32],[61,-32],[61,-4],[68,-4]],
+        "fields":["event_id","lat","long","time","magnitude","event_type","originating_system"]}}).then( result=> {
+    */  
         return loadQuakes(result.data,this.$store.state.animParams);
       }).then(qdata => {
         this.quakes=qdata.quakes;
