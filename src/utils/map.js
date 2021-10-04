@@ -43,37 +43,43 @@ export function loadMap(earth,canvas,map) {
 		p3.x,  p3.y,  p3.z,
 		p4.x,  p4.y,  p4.z,
 	];
-    const texture = new THREE.CanvasTexture(canvas);
+    if ( typeof loadMap.texture === 'undefined' ) {
+        loadMap.texture = new THREE.CanvasTexture(canvas);
 
-    const material = new THREE.MeshBasicMaterial( {
-        map: texture,
-        opacity: 0.3,
-        transparent: true,
-        side: THREE.DoubleSide 
-    } );
+        const material = new THREE.MeshBasicMaterial( {
+            map: loadMap.texture,
+            opacity: 0.3,
+            transparent: true,
+            side: THREE.DoubleSide 
+        } );
 
-    const geometry = new THREE.PolyhedronGeometry( vertices, [2,3,1 , 1,0,2 ], depth, 4 );
+        const geometry = new THREE.PolyhedronGeometry( vertices, [2,3,1 , 1,0,2 ], depth, 4 );
 
-    let pos = geometry.getAttribute('position');
-    let uv = new Float32Array(pos.count * 2);
-    for( let i=0;i<pos.count;i++) {
-        let p = cart2Geo(pos.array[3*i],pos.array[3*i+1],pos.array[3*i+2]);
-        /*let u = (p.lat - box.p1.lat) / ( box.p4.lat - box.p1.lat);
-        let v = (p.lon - box.p1.lng) / (box.p4.lng - box.p1.lng);*/
-        let vu = map.latLngToLayerPoint(L.latLng(p.lat,p.lon));
-        uv[2*i ] = vu.x/pixels;
-        uv[2*i +1] = 1.0-vu.y/pixels;
+        let pos = geometry.getAttribute('position');
+        let uv = new Float32Array(pos.count * 2);
+        for( let i=0;i<pos.count;i++) {
+            let p = cart2Geo(pos.array[3*i],pos.array[3*i+1],pos.array[3*i+2]);
+            /*let u = (p.lat - box.p1.lat) / ( box.p4.lat - box.p1.lat);
+            let v = (p.lon - box.p1.lng) / (box.p4.lng - box.p1.lng);*/
+            let vu = map.latLngToLayerPoint(L.latLng(p.lat,p.lon));
+            uv[2*i ] = vu.x/pixels;
+            uv[2*i +1] = 1.0-vu.y/pixels;
 
+        }
+        geometry.setAttribute( 'uv', new THREE.BufferAttribute( uv, 2 ) );
+        
+        //let geometry = new THREE.BufferGeometry();
+        // itemSize = 3 because there are 3 values (components) per vertex
+        //geometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+        let plane = new THREE.Mesh( geometry, material );
+        //plane.position.copy(qParams.centerOfMass);
+        earth.add( plane );
+
+        /*let ll = this.mymap.layerPointToLatLng(L.point(1,1));
+        console.log(`lat : ${ll.lat}  lon:${ll.lng}`);            */
+    } 
+    else {
+        loadMap.texture.needsUpdate = true;
     }
-    geometry.setAttribute( 'uv', new THREE.BufferAttribute( uv, 2 ) );
-    
-    //let geometry = new THREE.BufferGeometry();
-    // itemSize = 3 because there are 3 values (components) per vertex
-    //geometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
-    let plane = new THREE.Mesh( geometry, material );
-    //plane.position.copy(qParams.centerOfMass);
-    earth.add( plane );
-
-    /*let ll = this.mymap.layerPointToLatLng(L.point(1,1));
-    console.log(`lat : ${ll.lat}  lon:${ll.lng}`);            */
+    return loadMap.texture;
 }

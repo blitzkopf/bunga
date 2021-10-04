@@ -52,13 +52,30 @@ export function Quake(lat,lon,depth,time,size,verified,quality,loc_info) {
 }
 
 
-export function loadQuakes( data,animParams) {
+export function loadQuakesRasmus( data,animParams) {
 	let quakes=[];
 	for (const q of  data.items) {
 		if (q.size > 0){
 			quakes.push(new Quake(q.lat,q.long,q.depth,q.date*1000,q.size,q.verified,q.quality,{ dir:q.loc_dir, dist:q.loc_dist, name:q.loc_name }));
 		}
 	}
+	return processQuakes(quakes,animParams)
+}
+export function loadQuakesSkjalftalisa( data,animParams) {
+	let quakes=[];
+	for (let i = 0; i < data.event_type.length; i++) { 
+
+		if (data.magnitude[i] > 0){
+			//quakes.push(new Quake(q.lat,q.long,q.depth,q.date*1000,q.size,q.verified,q.quality,{ dir:q.loc_dir, dist:q.loc_dist, name:q.loc_name }));
+			quakes.push(new Quake(data.lat[i],data.long[i],data.depth[i],
+				data.time[i]*1000,data.magnitude[i],null/* q.verified*/ ,null /*q.quality*/,
+				null /*{ dir:q.loc_dir, dist:q.loc_dist, name:q.loc_name }*/));
+		}
+	}
+	return processQuakes(quakes,animParams)
+}
+
+function processQuakes(quakes,animParams) {
 	let qParams=calculatePositions(quakes,animParams);
 	/* figure out how to get this out of state */
 	//const hour = 60*60;

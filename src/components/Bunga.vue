@@ -16,14 +16,14 @@
       <tr> <td class="qi-desc">Lengd</td> <td class="qi-detail">{{ qDetail.lon }}</td></tr>
       <tr> <td class="qi-desc">Dýpi</td> <td class="qi-detail">{{ qDetail.depth }}</td></tr>
       <tr> <td class="qi-desc">Stærð</td> <td class="qi-detail">{{ qDetail.size  }}</td></tr>
-      <tr> <td class="qi-desc">Staður</td> <td class="qi-detail">{{qDetail.loc_info.dist}} km {{qDetail.loc_info.dir}} {{qDetail.loc_info.name}}</td></tr>
+      <!-- <tr> <td class="qi-desc">Staður</td> <td class="qi-detail">{{qDetail.loc_info.dist}} km {{qDetail.loc_info.dir}} {{qDetail.loc_info.name}}</td></tr> -->
       <tr> <td class="qi-desc">Gæði</td> <td class="qi-detail">{{ qDetail.quality }}</td></tr>
 
     </tbody>
   </table>
 
     </b-sidebar>
-    <Mapper @mapLoaded="loadMapHandler"/>
+    <Mapper ref="mapper" @mapLoaded="loadMapHandler"/>
   <div id="footer" class="content has-text-centered" >
     <span class="credit-list">Created by <a href="mailto:blitzkopf@gmail.com">Yngvi Þór</a> using Three.js, data provided by <a href="http://www.rasmuskr.dk" target="_blank">RasmusKr</a> and <a href="https://www.vedur.is/"> Veðurstofa Íslands </a></span>
   <span   v-html="attribution" /> 
@@ -38,6 +38,7 @@ import VueAxios from "vue-axios";
 import * as THREE from 'three';
 import { Sidebar } from 'buefy';
 import Mapper from './Mapper.vue'
+import {cart2Geo } from '../utils/quake'
 
 
 Vue.use(Sidebar);
@@ -47,13 +48,14 @@ Vue.use(Mapper);
 //import { OrbitControls } from 'https://unpkg.com/three@0.126.0/examples/jsm/controls/OrbitControls.js';
 import { TrackballControls } from 'three-controls';
 
-import { earthRadius , loadQuakes} from '../utils/quake.js'
+import { earthRadius , loadQuakesSkjalftalisa} from '../utils/quake.js'
 import { loadMap } from '../utils/map.js'
 
 Vue.use(VueAxios,axios);
 
-Vue.axios.defaults.baseURL = "https://isapi.rasmuskr.dk/api/"; // earthquakes/?date=72-hoursago
+//Vue.axios.defaults.baseURL = "http://isapi.rasmuskr.dk/api/"; // earthquakes/?date=72-hoursago
 //Vue.axios.defaults.baseURL = "https://api.vedur.is/skjalftalisa/v1/quake/"; // array/
+Vue.axios.defaults.baseURL = "https://689gkroy78.execute-api.eu-west-1.amazonaws.com/skjalftalisa/v1/quake"; // array/
 
 export default {
   name: 'Bunga', 
@@ -85,15 +87,23 @@ export default {
       document.addEventListener( 'mousemove', this.mouseMove, false );
 
 
-      Vue.axios.get('earthquakes/',{params:{date:'72-hoursago'}}).then( result=> {
-      /*Vue.axios.post('array/',{crossDomain: true,params:
-        {"start_time":"2021-03-13 03:31:00","end_time":"2021-03-20 03:31:00",
-        "depth_min":0,"depth_max":25,"size_min":3,"size_max":7,
+      //Vue.axios.get('earthquakes/',{params:{date:'72-hoursago'}}).then( result=> {
+      //        return loadQuakesRasmus(result.data,this.$store.state.animParams);  
+      let now = new Date();
+      let three_days_ago = new Date();
+      three_days_ago.setTime(now.getTime()-3*24*60*60*1000);
+
+      Vue.axios.post('array',{
+        "end_time":now.toISOString().substring(0,19).replace('T',' '),
+        "start_time":three_days_ago.toISOString().substring(0,19).replace('T',' '),
+        //"end_time":"2021-03-19 21:30:00",
+        //"start_time":"2021-03-16 21:30:00",
+        "depth_min":0,"depth_max":25,"size_min":0,"size_max":18,
         "magnitude_preference":["Mlw","Autmag"],"event_type":["qu"],"originating_system":["SIL picks"],
         "area":[[68,-32],[61,-32],[61,-4],[68,-4]],
-        "fields":["event_id","lat","long","time","magnitude","event_type","originating_system"]}}).then( result=> {
-    */  
-        return loadQuakes(result.data,this.$store.state.animParams);
+        "fields":["event_id","lat","long","depth","time","magnitude","event_type","originating_system"]}).then( result=> { 
+      
+        return loadQuakesSkjalftalisa(result.data.data,this.$store.state.animParams);
       }).then(qdata => {
         this.quakes=qdata.quakes;
         this.$store.commit('SAVE_QPARAMS',qdata.qParams);
@@ -111,6 +121,7 @@ export default {
 
       //const controls = new OrbitControls( camera, renderer.domElement );
       this.controls = new TrackballControls( this.camera, this.renderer.domElement );
+      this.controls.addEventListener( 'change', this.onChange  );
 
       var gearth = new THREE.SphereGeometry(earthRadius, 360, 180 );
       const wireframe = new THREE.WireframeGeometry( gearth );
@@ -138,7 +149,7 @@ export default {
       let attr='';
       map.eachLayer(function(layer)  {attr =layer.getAttribution();});
       this.attribution = attr;
-      loadMap(this.earth,canvas,map);
+      this.texture=loadMap(this.earth,canvas,map);
     },
     setCamera: function() {
         this.camera.lookAt(this.$store.state.qParams.centerOfMass);
@@ -155,6 +166,14 @@ export default {
       this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
       this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
     },
+    onChange ( event ) {
+        console.log("Target:"+event.target.target.x);
+        //event;
+        this.$refs["mapper"].rePosition(cart2Geo(event.target.target.x,event.target.target.y,event.target.target.z));
+        if(typeof this.texture !== 'undefined') {
+          this.texture.needsUpdate = true;
+        }
+    }, 
     animate: function () {
       requestAnimationFrame( this.animate );
       if('centerOfMass' in  this.$store.state.qParams)  {
