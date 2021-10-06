@@ -1,12 +1,12 @@
 <template>
   <div id="container" class="content">
-    <b-sidebar
+    <o-sidebar
+      :open = "showDetail"
       type="is-light"
       :fullheight="false"
       :fullwidth="false"
       :overlay="false"
       :right="true"
-      v-model="showDetail"
     >
    <h3>Skjálfti</h3>
    <table>
@@ -22,7 +22,7 @@
     </tbody>
   </table>
 
-    </b-sidebar>
+    </o-sidebar> 
     <Mapper ref="mapper" @mapLoaded="loadMapHandler"/>
   <div id="footer" class="content has-text-centered" >
     <span class="credit-list">Created by <a href="mailto:blitzkopf@gmail.com">Yngvi Þór</a> using Three.js, data provided by <a href="http://www.rasmuskr.dk" target="_blank">RasmusKr</a> and <a href="https://www.vedur.is/"> Veðurstofa Íslands </a></span>
@@ -32,30 +32,20 @@
 </template>
 
 <script>
-import Vue from 'vue'
-import axios from "axios";
-import VueAxios from "vue-axios";
 import * as THREE from 'three';
-import { Sidebar } from 'buefy';
 import Mapper from './Mapper.vue'
 import {cart2Geo } from '../utils/quake'
 
 
-Vue.use(Sidebar);
-Vue.use(Mapper);
-
+/*Vue.use(Sidebar);
+Vue.use(Mapper);*/
 
 //import { OrbitControls } from 'https://unpkg.com/three@0.126.0/examples/jsm/controls/OrbitControls.js';
 import { TrackballControls } from 'three-controls';
 
-import { earthRadius , loadQuakesSkjalftalisa} from '../utils/quake.js'
-import { loadMap } from '../utils/map.js'
-
-Vue.use(VueAxios,axios);
-
-//Vue.axios.defaults.baseURL = "http://isapi.rasmuskr.dk/api/"; // earthquakes/?date=72-hoursago
-//Vue.axios.defaults.baseURL = "https://api.vedur.is/skjalftalisa/v1/quake/"; // array/
-Vue.axios.defaults.baseURL = "https://689gkroy78.execute-api.eu-west-1.amazonaws.com/skjalftalisa/v1/quake"; // array/
+import { earthRadius , loadQuakesSkjalftalisa} from '../utils/quake'
+import { loadMap } from '../utils/map'
+import  apiClient from '../dataloads'
 
 export default {
   name: 'Bunga', 
@@ -67,7 +57,8 @@ export default {
     }
   },
   components: {
-    Mapper,
+    Mapper, 
+    //Sidebar
   },  
   methods: {
     init: function() {
@@ -91,30 +82,39 @@ export default {
       //        return loadQuakesRasmus(result.data,this.$store.state.animParams);  
       let now = new Date();
       let three_days_ago = new Date();
-      three_days_ago.setTime(now.getTime()-3*24*60*60*1000);
+      three_days_ago.setTime(now.getTime()-7*24*60*60*1000);
 
-      Vue.axios.post('array',{
-        "end_time":now.toISOString().substring(0,19).replace('T',' '),
-        "start_time":three_days_ago.toISOString().substring(0,19).replace('T',' '),
-        //"end_time":"2021-03-19 21:30:00",
-        //"start_time":"2021-03-16 21:30:00",
-        "depth_min":0,"depth_max":25,"size_min":0,"size_max":18,
-        "magnitude_preference":["Mlw","Autmag"],"event_type":["qu"],"originating_system":["SIL picks"],
-        "area":[[68,-32],[61,-32],[61,-4],[68,-4]],
-        "fields":["event_id","lat","long","depth","time","magnitude","event_type","originating_system"]}).then( result=> { 
-      
-        return loadQuakesSkjalftalisa(result.data.data,this.$store.state.animParams);
-      }).then(qdata => {
-        this.quakes=qdata.quakes;
-        this.$store.commit('SAVE_QPARAMS',qdata.qParams);
-        this.qGroup = new THREE.Group();
-        for( const  q of this.quakes) {
-          this.qGroup.add(q.mesh);
-        }
-        this.earth.add(this.qGroup);
-        this.setCamera();
+      console.log(this);
+      apiClient.post('array',{
+          "start_time":three_days_ago.toISOString().substring(0,19).replace('T',' '),
+          "end_time":now.toISOString().substring(0,19).replace('T',' '),
+          //"start_time":"2021-03-05 21:30:00",
+          //"end_time":"2021-03-19 21:30:00",
+          //"start_time":"2014-08-13 21:30:00",
+          //"end_time":"2014-08-30 21:30:00",
+          //"start_time":"2010-04-07 21:30:00",
+          //"end_time":"2010-04-14 23:30:00",
 
-      }) /*.
+          "depth_min":0,"depth_max":25,"size_min":0,"size_max":18,
+          "magnitude_preference":["Mlw","Autmag"],"event_type":["qu"],"originating_system":["SIL picks"],
+          "area":[[68,-32],[61,-32],[61,-4],[68,-4]],
+          "fields":["event_id","lat","long","depth","time","magnitude","event_type","originating_system"]
+        })
+        .then( result=> {
+          console.log(this);
+          return loadQuakesSkjalftalisa(result.data.data,this.$store.state.animParams);
+        })
+        .then(qdata => {
+          this.quakes=qdata.quakes;
+          this.$store.commit('SAVE_QPARAMS',qdata.qParams);
+          this.qGroup = new THREE.Group();
+          for( const  q of this.quakes) {
+            this.qGroup.add(q.mesh);
+          }
+          this.earth.add(this.qGroup);
+          this.setCamera();
+
+        }) /*.
         catch(error => {
           throw new Error(`API ${error}`);
         })*/;
@@ -176,7 +176,10 @@ export default {
     }, 
     animate: function () {
       requestAnimationFrame( this.animate );
-      if('centerOfMass' in  this.$store.state.qParams)  {
+      //if('centerOfMass' in  this.$store.state.qParams 
+      //  && typeof this.$store.state.qParams.centerOfMass === 'object')  
+      if(this.$store.state.ready)
+      {
 
         this.$store.commit('newFrame');
 

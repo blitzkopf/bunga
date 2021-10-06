@@ -1,13 +1,24 @@
 <template>
     <section id="slider">
-        <b-field id="timer" v-bind:label="displayTime">
+        <!-- <b-field id="timer" v-bind:label="displayTime">
             <b-slider v-model="animTime" :custom-formatter="(val) => formatTime(val)" :tooltip="false" indicator  locale="en-GB"
                 v-bind:min="firstTime" v-bind:max="lastTime"></b-slider>
-        </b-field>
+        </b-field> -->
+    <o-field id="timer" v-bind:label="displayTime">
+      <o-slider v-model="animTime"  :custom-formatter="val => formatTime(val)"
+                v-bind:min="firstTime" v-bind:max="lastTime"
+                :tooltipAlways = "true" position="bottom"></o-slider>
+    </o-field>
     </section>
 </template>
 
 <script>
+Number.prototype.pad = function(size) {
+    var s = String(this);
+    while (s.length < (size || 2)) {s = "0" + s;}
+    return s;
+}
+
     export default {
         name: 'Playbar',
         data() {
@@ -39,22 +50,25 @@
         methods: {
             formatTime(dt) {
                 let d=new Date(dt);
-                return d.getHours() + ':' + d.getMinutes() ;
+                return d.getHours().pad() + ':' + d.getMinutes().pad() ;
         }
     },
     }
 </script>
 <style>
 #slider{
-	/*background-color:#000; */
+	background-color:#000;
 	/*z-index:0;*/
 	position: relative;
 	/*width:600px;*/
 	height:0px;
 	margin: 0;
 }
-.b-slider.tooltip-content{
+.o-slider.tooltip-content{
 	color:#000;
+}
+.orderClass{
+    position: bottom;
 }
 
 #timer .label {

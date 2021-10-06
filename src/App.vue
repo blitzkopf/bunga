@@ -5,26 +5,26 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+
 import Bunga from './components/Bunga.vue'
 //import TimeDisplay from './components/TimeDisplay.vue'
 import Playbar from './components/Playbar.vue'
 
-import VueGtag from "vue-gtag";
-import Vue from 'vue'
-import { Slider ,Field } from 'buefy'
-import 'buefy/dist/buefy.css'
+//import VueGtag from "vue-gtag";
+//import  createApp from 'vue'
+import { Options, Vue } from 'vue-class-component';
 
-Vue.use(Slider)
-Vue.use(Field)
+//import { Slider ,Field } from 'buefy/types'
+//import 'buefy/dist/buefy.css'
 
-Vue.use(VueGtag, {
-  config: { id: "G-00K6EYE0VE" }
-});
+/*const app = new createApp({})*/
 
-export default {
-  name: 'App',
-  data: function() {
+/*app.use(Slider)
+app.use(Field) */
+
+@Options({
+ data: function() {
     return {
       time: ""
     };
@@ -34,11 +34,12 @@ export default {
     Playbar
   },  
   methods: {
-    updateTime(variable) {
+    updateTime(variable: number) {
       this.time= variable;
     }
   }
-}
+})
+export default class App extends Vue {}
 </script>
 
 <style>

@@ -2,7 +2,7 @@ import {Quake} from './quake.js'
 import * as $ from 'jquery';
 
 
-/* export function loadDataRasmuskr(url,callback) {
+export function loadDataRasmuskr(url,callback) {
 	$.getJSON(url,function(resp) {
 		var quakes = [];
 		for (var i in resp.items) {
@@ -14,4 +14,4 @@ import * as $ from 'jquery';
 	});
 
 	
-}*/
+}
