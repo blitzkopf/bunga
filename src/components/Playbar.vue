@@ -12,48 +12,51 @@
     </section>
 </template>
 
-<script>
-Number.prototype.pad = function(size) {
-    var s = String(this);
+<script lang="ts">
+import { defineComponent ,computed}  from 'vue';
+import { useStore } from '../store';
+import { MutationType } from '../store/mutations'
+
+
+function pad(v:number,size?:number):string {
+    var s = String(v);
     while (s.length < (size || 2)) {s = "0" + s;}
     return s;
 }
 
-    export default {
-        name: 'Playbar',
-        data() {
-            return {
-                format: "raw",
-                locale: undefined, // Browser locale
-            }
-        },
-        computed: {
-            animTime: {
-                get () { 
-                    return this.$store.state.animTime ;
-                },
-                set (value) { 
-                    this.$store.commit('setAnimTime',value);
-                },
+export default defineComponent({
+    name: 'Playbar',
+    setup() {
+        const store = useStore();
+
+        //increment: () => store.commit('increment'),
+        const firstTime=  computed(()=>  {return store.state.quakeParams!.firstTime;});
+        const lastTime=  computed(()=>  {return store.state.quakeParams!.lastTime; });
+        const displayTime = computed(()=> {
+            return new Date(store.state.animParams.animTime).toLocaleString('en-GB');
+        });
+        const animTime = computed({
+            get: ()=> store.state.animParams.animTime ,
+            set: (value:number)=> { 
+                store.commit(MutationType.SetAnimTime,value);
             },
-            firstTime () {
-                return this.$store.state.qParams.firstTime;
-            },
-            lastTime () {
-                return this.$store.state.qParams.lastTime;
-            },
-            displayTime () {
-                return new Date(this.$store.state.animTime).toLocaleString('en-GB');
-            }
-       
-        },
-        methods: {
-            formatTime(dt) {
-                let d=new Date(dt);
-                return d.getHours().pad() + ':' + d.getMinutes().pad() ;
+        },)
+
+        return {store,firstTime,lastTime,displayTime,animTime}
+    },
+    data() {
+        return {
+            format: "raw",
+            locale: undefined, // Browser locale
         }
     },
-    }
+    methods: {
+        formatTime(dt:number) {
+            let d=new Date(dt);
+            return pad(d.getHours()) + ':' + pad(d.getMinutes()) ;
+        }
+    },
+});
 </script>
 <style>
 #slider{

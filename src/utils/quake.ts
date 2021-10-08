@@ -76,7 +76,8 @@ export function loadQuakesRasmus( data:any ,animParams:any) {
 	}
 	return processQuakes(quakes,animParams)
 }
-export function loadQuakesSkjalftalisa( data:any,animParams:any) {
+export function loadQuakesSkjalftalisa( input:any,animParams:any) {
+	const data = input.data;
 	const quakes=[];
 	for (let i = 0; i < data.event_type.length; i++) { 
 

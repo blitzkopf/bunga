@@ -130,7 +130,7 @@ export default {
   },
   computed: mapState(['qParams']),
   watch: {
-    "$store.state.qParams"(newValue, oldValue) {
+    "$store.state.quakeParams"(newValue, oldValue) {
       console.log(`Updating from ${oldValue} to ${newValue}`);
 
       // Do whatever makes sense now

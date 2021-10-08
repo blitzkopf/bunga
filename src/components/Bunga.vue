@@ -31,50 +31,93 @@
     </div>
 </template>
 
-<script>
+<script lang="ts" >
+import { defineComponent }  from 'vue'
 import * as THREE from 'three';
+import * as L from 'leaflet';
 import Mapper from './Mapper.vue'
-import {cart2Geo } from '../utils/quake'
+import {/*cart2Geo,*/ Quake } from '../utils/quake'
+import { useStore } from '../store'
+import { ActionTypes } from '../store/actions'
 
 
 /*Vue.use(Sidebar);
 Vue.use(Mapper);*/
 
 //import { OrbitControls } from 'https://unpkg.com/three@0.126.0/examples/jsm/controls/OrbitControls.js';
-import { TrackballControls } from 'three-controls';
+//import  { TrackballControls}  from 'three-controls';
+import  { TrackballControls}  from 'three/examples/jsm/controls/TrackballControls';
 
 import { earthRadius , loadQuakesSkjalftalisa} from '../utils/quake'
 import { loadMap } from '../utils/map'
 import  apiClient from '../dataloads'
+//import { Mapper } from 'vuex';
 
-export default {
-  name: 'Bunga', 
+interface THREEData {
+        scene:THREE.Scene;
+        camera:THREE.PerspectiveCamera;
+        renderer:THREE.WebGLRenderer;
+        earth:THREE.Line;
+        last_intersect: THREE.Intersection<THREE.Mesh>|null ;
+        qGroup: THREE.Group;
+        raycaster: THREE.Raycaster;
+        mouse: THREE.Vector2;
+        controls: TrackballControls;
+        texture: THREE.Texture;
+}
+const threeData = {          
+  raycaster: new THREE.Raycaster(),
+  mouse: new THREE.Vector2()
+} as Partial<THREEData>;
+
+let quakes:Quake[] = []
+
+export default  defineComponent({
+  name: 'Bunga',
   data() {
     return {
         showDetail: false,
         qDetail: {loc_info:{name:''}},
-        attribution: ''
+        attribution: '',
+        //quakes: [] as Quake[],
+        /*three: {
+          raycaster: new THREE.Raycaster(),
+          mouse: new THREE.Vector2()
+        } as Partial<OptionalData>*/
     }
   },
+  /*props: {
+    scene: {
+      type: THREE.Scene,
+      required: true
+    },
+    camera: {
+      type: THREE.Camera,
+      required: true
+    },
+    renderer: {
+      type: THREE.WebGLRenderer,
+      required: true
+    },
+
+  },*/
   components: {
     Mapper, 
     //Sidebar
   },  
   methods: {
     init: function() {
-    
+      const store = useStore();
       //var timeDelta;
       //let container = document.getElementById('container');
 
-      this.scene = new THREE.Scene();
-      this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+      threeData.scene = new THREE.Scene();
+      threeData.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
-      this.renderer = new THREE.WebGLRenderer();
+      threeData.renderer = new THREE.WebGLRenderer();
 
-      this.renderer.setSize( window.innerWidth, window.innerHeight );
-      document.body.appendChild( this.renderer.domElement );
-      this.raycaster = new THREE.Raycaster();
-      this.mouse = new THREE.Vector2();  
+      threeData.renderer.setSize( window.innerWidth, window.innerHeight );
+      document.body.appendChild( threeData.renderer.domElement );
       document.addEventListener( 'mousemove', this.mouseMove, false );
 
 
@@ -85,13 +128,13 @@ export default {
       three_days_ago.setTime(now.getTime()-7*24*60*60*1000);
 
       console.log(this);
-      apiClient.post('array',{
-          "start_time":three_days_ago.toISOString().substring(0,19).replace('T',' '),
-          "end_time":now.toISOString().substring(0,19).replace('T',' '),
+      apiClient.post('/array',{
+          //"start_time":three_days_ago.toISOString().substring(0,19).replace('T',' '),
+          //"end_time":now.toISOString().substring(0,19).replace('T',' '),
           //"start_time":"2021-03-05 21:30:00",
           //"end_time":"2021-03-19 21:30:00",
-          //"start_time":"2014-08-13 21:30:00",
-          //"end_time":"2014-08-30 21:30:00",
+          "start_time":"2014-08-13 21:30:00",
+          "end_time":"2014-08-30 21:30:00",
           //"start_time":"2010-04-07 21:30:00",
           //"end_time":"2010-04-14 23:30:00",
 
@@ -102,16 +145,16 @@ export default {
         })
         .then( result=> {
           console.log(this);
-          return loadQuakesSkjalftalisa(result.data.data,this.$store.state.animParams);
+          return loadQuakesSkjalftalisa(result.data,store.state.animParams);
         })
         .then(qdata => {
-          this.quakes=qdata.quakes;
-          this.$store.commit('SAVE_QPARAMS',qdata.qParams);
-          this.qGroup = new THREE.Group();
-          for( const  q of this.quakes) {
-            this.qGroup.add(q.mesh);
+          quakes=qdata.quakes;
+          this.$store.commit('SAVE_QUAKE_PARAMS',qdata.qParams);
+          threeData.qGroup = new THREE.Group();
+          for( const  q of quakes) {
+            threeData.qGroup.add(q.mesh);
           }
-          this.earth.add(this.qGroup);
+          threeData.earth!.add(threeData.qGroup);
           this.setCamera();
 
         }) /*.
@@ -120,95 +163,98 @@ export default {
         })*/;
 
       //const controls = new OrbitControls( camera, renderer.domElement );
-      this.controls = new TrackballControls( this.camera, this.renderer.domElement );
-      this.controls.addEventListener( 'change', this.onChange  );
+      threeData.controls = new TrackballControls( threeData.camera as THREE.Camera , threeData.renderer.domElement );
+      threeData.controls.addEventListener( 'change', this.onChange  );
 
       var gearth = new THREE.SphereGeometry(earthRadius, 360, 180 );
       const wireframe = new THREE.WireframeGeometry( gearth );
       var mearth = new THREE.LineBasicMaterial( { color: 0x900090, linewidth: .5});
       //this.earth  = new THREE.Line( gearth, mearth );
-      this.earth  = new THREE.Line( wireframe, mearth );
+      threeData.earth  = new THREE.Line( wireframe, mearth );
 
       var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.7 );
-      this.scene.add( directionalLight );
+      threeData.scene.add( directionalLight );
       const ambiLight = new THREE.AmbientLight( 0x909090 ); // soft white light
-      this.scene.add( ambiLight );
+      threeData.scene.add( ambiLight );
 
-      this.scene.add( this.earth );
+      threeData.scene.add( threeData.earth );
     
       //loadDataRasmuskr("http://isapi.rasmuskr.dk/api/earthquakes/?date=72-hoursago",this.addQuakes);
 
       //this.timeStart = new Date().getTime();
-      this.$store.commit('startTime');
+      this.$store.commit('START_TIME');
 
       //camera.position.z = earthRadius+10;
       //camera.position.addVectors ( qParams.centerOfMass, new THREE.Vector(10,0,0));
 
     },
-    loadMapHandler: function(canvas,map) {
+    loadMapHandler: function(canvas:HTMLCanvasElement,map:L.Map) {
       let attr='';
-      map.eachLayer(function(layer)  {attr =layer.getAttribution();});
+      // ACHTUNG: Check attribution
+      // map.eachLayer(function(layer)  {attr =layer.getAttribution();});
       this.attribution = attr;
-      this.texture=loadMap(this.earth,canvas,map);
+      threeData.texture=loadMap(threeData.earth!,canvas,map);
     },
     setCamera: function() {
-        this.camera.lookAt(this.$store.state.qParams.centerOfMass);
-        this.camera.position.copy ( new THREE.Vector3(50,50,-20).add(this.$store.state.qParams.centerOfMass) );
-        this.camera.up.copy(this.$store.state.qParams.centerOfMass.clone().normalize());	
-        
-        this.controls.target.copy(this.$store.state.qParams.centerOfMass);
-        this.controls.update();
-        this.controls.enablePan = false;
-        this.controls.enableDamping = true;
-        this.cameraSet = true;
+        const store=useStore();
+        threeData.camera!.position.copy ( new THREE.Vector3(-20,50,50).add(store.state.quakeParams!.centerOfMass!) );
+        threeData.camera!.up.copy(store.state.quakeParams!.centerOfMass!.clone().normalize());	
+        threeData.camera!.lookAt(store.state.quakeParams!.centerOfMass!);
+
+        threeData.controls!.target.copy(store.state.quakeParams!.centerOfMass!);
+        threeData.controls!.update();
+        //threeData.controls!.enablePan = false;
+        //threeData.controls!.enableDamping = true;
     },
-    mouseMove(event) {
-      this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-      this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    mouseMove(event:THREE.Event) {
+      threeData.mouse!.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+      threeData.mouse!.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
     },
-    onChange ( event ) {
+    onChange ( event:THREE.Event ) {
         console.log("Target:"+event.target.target.x);
         //event;
-        this.$refs["mapper"].rePosition(cart2Geo(event.target.target.x,event.target.target.y,event.target.target.z));
+        // ACHTUNG: where is the mapper? Hér ætti að elta viewið
+        /*(this.$refs["mapper"] as typeof Mapper).rePosition(cart2Geo(event.target.target.x,event.target.target.y,event.target.target.z));
         if(typeof this.texture !== 'undefined') {
           this.texture.needsUpdate = true;
-        }
+        }*/
     }, 
     animate: function () {
       requestAnimationFrame( this.animate );
       //if('centerOfMass' in  this.$store.state.qParams 
-      //  && typeof this.$store.state.qParams.centerOfMass === 'object')  
-      if(this.$store.state.ready)
+      //  && typeof this.$store.state.qParams.centerOfMass === 'object')
+      const store = useStore();  
+      if(store.state.ready)
       {
 
-        this.$store.commit('newFrame');
+        store.dispatch(ActionTypes.newFrame);
 
-        let quakes = this.quakes;
+        //let quakes = quakes;
         for(const q of quakes) {
-          q.setVisParams(this.$store.state.animTime,this.$store.state.animParams);
+          q.setVisParams(store.state.animParams.animTime,store.state.animParams);
           //q.mesh.material.update();
           //q.mixer.setTime(animTime.getTime()/1000);         
         }
         //		if(! qParams.centerOfMass === undefined) {
         //		}
-        this.controls.update();
-        this.camera.up.copy(this.camera.position.clone().normalize());	
+        threeData.controls!.update();
+        threeData.camera!.up.copy(threeData.camera!.position.clone().normalize());	
 
         // update the picking ray with the camera and mouse position
-        this.raycaster.setFromCamera( this.mouse, this.camera );
+        threeData.raycaster!.setFromCamera( threeData.mouse!, threeData.camera! );
 
         // calculate objects intersecting the picking ray
-        const intersects = this.raycaster.intersectObjects( this.qGroup.children );
+        const intersects:any[] = threeData.raycaster!.intersectObjects( threeData.qGroup!.children );
 
-        if(intersects.length > 0 && this.last_intersect != intersects[0]) {
+        if(intersects.length > 0 && threeData.last_intersect != intersects[0]) {
           intersects[ 0 ].object.material.color.set( 0xffffff );
           this.qDetail = intersects[0].object.quake;
           this.showDetail = true;
           intersects[ 0 ].object.material.color.set( 0xffffff );
-          this.last_intersect = intersects[0];
+          threeData.last_intersect = intersects[0];
         } else {
           this.showDetail = false;
-          this.last_intersect = null;
+          threeData.last_intersect = null ;
         }
         /*		earth.rotation.x += 0.00001;
         earth.rotation.y += 0.00001;*/
@@ -216,7 +262,7 @@ export default {
         //camera.lookAt(earth.localToWorld(qParams.centerOfMass.clone()));
         //COM.getWorldPosition()
       }
-      this.renderer.render(this.scene, this.camera);
+      threeData.renderer!.render(threeData.scene! /*as THREE.Object3D*/, threeData.camera!);
       
     }
   },
@@ -227,7 +273,7 @@ export default {
       this.init();
       this.animate();
   }
-}
+});
 
 </script>
 

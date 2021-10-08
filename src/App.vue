@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Bunga  @time="updateTime" />
+    <Bunga />
     <Playbar />
   </div>
 </template>
