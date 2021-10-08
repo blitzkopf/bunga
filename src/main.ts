@@ -4,13 +4,13 @@ import store from './store'
 import { Slider,Field,Sidebar } from '@oruga-ui/oruga-next'
 import '@oruga-ui/oruga-next/dist/oruga.css'
 
-//import VueGtag from "vue-gtag";
+import VueGtag from "vue-gtag";
 
 const app = createApp(App)
     .use(store)
-    /*.use(VueGtag, {
+    .use(VueGtag, {
         config: { id: "G-00K6EYE0VE" }
-    })*/    
+    })    
     .use(Slider)
     .use(Field)
     .use(Sidebar)

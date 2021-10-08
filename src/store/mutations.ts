@@ -8,6 +8,7 @@ export enum MutationType {
   SetAnimTimeLast = 'SET_ANIM_TIME_LAST',
   AddAnimTime = 'ADD_ANIM_TIME',
   StartTime = 'START_TIME',
+  SetMapdepth = 'SET_MAPDEPTH'
 }
 
 export type Mutations = {
@@ -16,7 +17,9 @@ export type Mutations = {
     [MutationType.SetAnimTimeLast](state: State, time: number): void,
     [MutationType.AddAnimTime](state: State, time: number): void,
     [MutationType.StartTime](state: State): void,
-}
+    [MutationType.SetMapdepth](state: State, depth:number): void,
+
+  }
 
 // /store/mutation.js
 export const mutations: MutationTree<State> & Mutations = {
@@ -35,6 +38,9 @@ export const mutations: MutationTree<State> & Mutations = {
   },
   [MutationType.StartTime](state) {
     state.animParams.timeStart = new Date().getTime();
+  },
+  [MutationType.SetMapdepth](state, depth) {
+    state.animParams.mapdepth = depth;
   },
 
 }

@@ -1,9 +1,5 @@
 <template>
     <section id="slider">
-        <!-- <b-field id="timer" v-bind:label="displayTime">
-            <b-slider v-model="animTime" :custom-formatter="(val) => formatTime(val)" :tooltip="false" indicator  locale="en-GB"
-                v-bind:min="firstTime" v-bind:max="lastTime"></b-slider>
-        </b-field> -->
     <o-field id="timer" v-bind:label="displayTime">
       <o-slider v-model="animTime"  :custom-formatter="val => formatTime(val)"
                 v-bind:min="firstTime" v-bind:max="lastTime"
@@ -59,13 +55,18 @@ export default defineComponent({
 });
 </script>
 <style>
-#slider{
-	background-color:#000;
+#timer{
+	background-color:transparent;
+    color: white;
 	/*z-index:0;*/
-	position: relative;
+    width: 95%;
+    top: 18px;
+    left: 0;
+	position: absolute;
 	/*width:600px;*/
-	height:0px;
-	margin: 0;
+	margin: 10;
+    /*opacity: 0.7;*/
+
 }
 .o-slider.tooltip-content{
 	color:#000;
@@ -74,7 +75,4 @@ export default defineComponent({
     position: bottom;
 }
 
-#timer .label {
-    color:#fff;
-} 
 </style>

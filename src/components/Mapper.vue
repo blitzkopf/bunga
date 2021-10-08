@@ -2,7 +2,7 @@
     <div id="mapid"/>
 </template>
 
-<script>
+<script type="ts">
 import * as L from 'leaflet';
 import { mapState } from 'vuex';
 import {cart2Geo } from '../utils/quake'

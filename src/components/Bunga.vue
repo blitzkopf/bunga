@@ -1,10 +1,9 @@
 <template>
   <div id="container" class="content">
     <o-sidebar
-      :open = "showDetail"
-      type="is-light"
+      :open = "true"
+      v-show = "showDetail"
       :fullheight="false"
-      :fullwidth="false"
       :overlay="false"
       :right="true"
     >
@@ -24,6 +23,7 @@
 
     </o-sidebar> 
     <Mapper ref="mapper" @mapLoaded="loadMapHandler"/>
+    <Controls />
   <div id="footer" class="content has-text-centered" >
     <span class="credit-list">Created by <a href="mailto:blitzkopf@gmail.com">Yngvi Þór</a> using Three.js, data provided by <a href="http://www.rasmuskr.dk" target="_blank">RasmusKr</a> and <a href="https://www.vedur.is/"> Veðurstofa Íslands </a></span>
   <span   v-html="attribution" /> 
@@ -36,6 +36,7 @@ import { defineComponent }  from 'vue'
 import * as THREE from 'three';
 import * as L from 'leaflet';
 import Mapper from './Mapper.vue'
+//import Controls from './Controls.vue'
 import {/*cart2Geo,*/ Quake } from '../utils/quake'
 import { useStore } from '../store'
 import { ActionTypes } from '../store/actions'
@@ -102,7 +103,8 @@ export default  defineComponent({
 
   },*/
   components: {
-    Mapper, 
+    Mapper,
+    //Controls 
     //Sidebar
   },  
   methods: {
@@ -131,10 +133,10 @@ export default  defineComponent({
       apiClient.post('/array',{
           //"start_time":three_days_ago.toISOString().substring(0,19).replace('T',' '),
           //"end_time":now.toISOString().substring(0,19).replace('T',' '),
-          //"start_time":"2021-03-05 21:30:00",
-          //"end_time":"2021-03-19 21:30:00",
-          "start_time":"2014-08-13 21:30:00",
-          "end_time":"2014-08-30 21:30:00",
+          "start_time":"2021-03-05 21:30:00",
+          "end_time":"2021-03-19 21:30:00",
+          //"start_time":"2014-08-13 21:30:00",
+          //"end_time":"2014-08-30 21:30:00",
           //"start_time":"2010-04-07 21:30:00",
           //"end_time":"2010-04-14 23:30:00",
 

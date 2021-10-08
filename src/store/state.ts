@@ -13,11 +13,6 @@ export type AnimParams = {
   minQuakeSize: number ,//
   sizeMultiplier: number, //
   mapdepth: number, // km
-  flybyRadius: number, // degrees
-  flybyHeight: number, //
-  lookAtDepth: number,
-  rotationSpeed: number,
-  dispVerifiedOnly: boolean,
   greenGiant: boolean,
   time?:number; 
   timeStart:number;
@@ -45,11 +40,6 @@ export const state: State = {
       minQuakeSize: 0 ,//
       sizeMultiplier: .2, //
       mapdepth: -15, // km
-      flybyRadius: 150, // degrees
-      flybyHeight: -2, //
-      lookAtDepth: 5,
-      rotationSpeed: -1,
-      dispVerifiedOnly: false,
       greenGiant: true,
       time:undefined,
       timeStart:0,

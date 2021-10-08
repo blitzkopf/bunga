@@ -56,7 +56,8 @@ export function loadMap(earth:THREE.Object3D,canvas:HTMLCanvasElement,map:L.Map)
             side: THREE.DoubleSide 
         } );
 
-        const geometry = new THREE.PolyhedronGeometry( vertices, [2,3,1 , 1,0,2 ], depth, 4 );
+        //const geometry = new THREE.PolyhedronGeometry( vertices, [2,3,1 , 1,0,2 ], depth, 4 );
+        const geometry = new THREE.PolyhedronGeometry( vertices, [2,3,1 , 1,0,2 ], 1 , 4 );
 
         const pos = geometry.getAttribute('position');
         const uv = new Float32Array(pos.count * 2);
@@ -76,6 +77,7 @@ export function loadMap(earth:THREE.Object3D,canvas:HTMLCanvasElement,map:L.Map)
         //geometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
         const plane = new THREE.Mesh( geometry, material );
         //plane.position.copy(qParams.centerOfMass);
+        plane.scale.set(depth,depth,depth);
         earth.add( plane );
 
         /*let ll = this.mymap.layerPointToLatLng(L.point(1,1));

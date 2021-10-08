@@ -41,19 +41,31 @@ export class Quake {
 		
 		if ( hours <= 0.2 ) {
 			this.mesh.material.color.setHex(0xffffff);
+			this.mesh.material.transparent = false;
 		} else if ( hours <= 4.0 ) {
 			this.mesh.material.color.setHex(0xff0000);
+			this.mesh.material.transparent = false;
 		} else if(hours <= 12) {
 			this.mesh.material.color.setHex(0xff6000);
+			this.mesh.material.transparent = false;
 		}
 		else if(hours <= 24) {
 			this.mesh.material.color.setHex(0xffff00);
+			this.mesh.material.transparent = false;
 		}
 		else if(hours <= 36) {
 			this.mesh.material.color.setHex(0x3060c0);
+			this.mesh.material.transparent = false;
+		}
+		else if(hours <= 72) {
+			this.mesh.material.color.setHex(0x000070);
+			this.mesh.material.transparent = false;
 		}
 		else {
-			this.mesh.material.color.setHex(0x000060);
+			this.mesh.material.color.setHex(0x606060)
+			this.mesh.material.transparent = true;
+			this.mesh.material.opacity =  (72.0/hours);
+			
 		}
 		/*  Have yo figure this out later */
 		/*let scale = 1;
