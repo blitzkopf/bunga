@@ -78,6 +78,7 @@ export function loadMap(earth:THREE.Object3D,canvas:HTMLCanvasElement,map:L.Map)
         const plane = new THREE.Mesh( geometry, material );
         //plane.position.copy(qParams.centerOfMass);
         plane.scale.set(depth,depth,depth);
+        plane.name='plane';
         earth.add( plane );
 
         /*let ll = this.mymap.layerPointToLatLng(L.point(1,1));

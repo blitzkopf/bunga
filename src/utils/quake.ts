@@ -28,7 +28,7 @@ export class Quake {
 
 	}
 	setVisParams(currentTime:number,animParams:any) {
-		if(this.time < currentTime) {
+		if(this.time <= currentTime && this.size > animParams.minQuakeSize ) {
 			this.mesh.visible=true;
 		} else {
 			this.mesh.visible=false;
@@ -122,7 +122,7 @@ function processQuakes(quakes: Quake[],animParams:any) {
 		]);*/
 
 	for(const q of quakes) {
-		const g = new THREE.IcosahedronGeometry(q.size * animParams.sizeMultiplier,4);
+		const g = new THREE.IcosahedronGeometry(q.size * animParams.sizeMultiplier,5);
 		const m = new THREE.MeshLambertMaterial({color: 0xffffff }).clone();
 		const s:any = new THREE.Mesh(g,m);
 		/* let mixer = new THREE.AnimationMixer(s);

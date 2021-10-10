@@ -13,7 +13,7 @@ import { Actions, actions } from './actions'
 //import { Getters, getters } from './getters'
 
 export const store = createStore<State>({
-    plugins: process.env.NODE_ENV === 'development' ? [createLogger()] : [],
+    plugins: process.env.NODE_ENV === 'development' ? [/*createLogger()*/] : [],
     state,
     mutations,
     actions,

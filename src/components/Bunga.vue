@@ -1,5 +1,5 @@
 <template>
-  <div id="container" class="content">
+  <div id="container" ref="container" class="content">
     <o-sidebar
       :open = "true"
       v-show = "showDetail"
@@ -23,7 +23,7 @@
 
     </o-sidebar> 
     <Mapper ref="mapper" @mapLoaded="loadMapHandler"/>
-    <Controls />
+    <Controls /> 
   <div id="footer" class="content has-text-centered" >
     <span class="credit-list">Created by <a href="mailto:blitzkopf@gmail.com">Yngvi Þór</a> using Three.js, data provided by <a href="http://www.rasmuskr.dk" target="_blank">RasmusKr</a> and <a href="https://www.vedur.is/"> Veðurstofa Íslands </a></span>
   <span   v-html="attribution" /> 
@@ -36,11 +36,8 @@ import { defineComponent }  from 'vue'
 import * as THREE from 'three';
 import * as L from 'leaflet';
 import Mapper from './Mapper.vue'
-//import Controls from './Controls.vue'
+import Controls from './Controls.vue'
 import {/*cart2Geo,*/ Quake } from '../utils/quake'
-import { useStore } from '../store'
-import { ActionTypes } from '../store/actions'
-
 
 /*Vue.use(Sidebar);
 Vue.use(Mapper);*/
@@ -52,24 +49,11 @@ import  { TrackballControls}  from 'three/examples/jsm/controls/TrackballControl
 import { earthRadius , loadQuakesSkjalftalisa} from '../utils/quake'
 import { loadMap } from '../utils/map'
 import  apiClient from '../dataloads'
-//import { Mapper } from 'vuex';
 
-interface THREEData {
-        scene:THREE.Scene;
-        camera:THREE.PerspectiveCamera;
-        renderer:THREE.WebGLRenderer;
-        earth:THREE.Line;
-        last_intersect: THREE.Intersection<THREE.Mesh>|null ;
-        qGroup: THREE.Group;
-        raycaster: THREE.Raycaster;
-        mouse: THREE.Vector2;
-        controls: TrackballControls;
-        texture: THREE.Texture;
-}
-const threeData = {          
-  raycaster: new THREE.Raycaster(),
-  mouse: new THREE.Vector2()
-} as Partial<THREEData>;
+import { useStore } from '../store'
+import { ActionTypes } from '../store/actions'
+import { MutationType } from '../store/mutations';
+//import { Mapper } from 'vuex';
 
 let quakes:Quake[] = []
 
@@ -80,48 +64,67 @@ export default  defineComponent({
         showDetail: false,
         qDetail: {loc_info:{name:''}},
         attribution: '',
-        //quakes: [] as Quake[],
-        /*three: {
-          raycaster: new THREE.Raycaster(),
-          mouse: new THREE.Vector2()
-        } as Partial<OptionalData>*/
     }
   },
-  /*props: {
-    scene: {
-      type: THREE.Scene,
-      required: true
-    },
-    camera: {
-      type: THREE.Camera,
-      required: true
-    },
-    renderer: {
-      type: THREE.WebGLRenderer,
-      required: true
-    },
-
-  },*/
   components: {
     Mapper,
-    //Controls 
+    Controls 
     //Sidebar
-  },  
+  },
+  setup() {
+      const store = useStore();
+      //const container = ref<HTMLDOMElement>()
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+      
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize( window.innerWidth, window.innerHeight );
+
+      document.body.appendChild( renderer.domElement );
+      //container!.appendChild( renderer.domElement );
+
+      //document.addEventListener( 'mousemove', this.mouseMove, false );
+      const controls = new TrackballControls( camera as THREE.Camera , renderer.domElement );
+      //controls.addEventListener( 'change', this.onChange  );
+
+      const gearth = new THREE.SphereGeometry(earthRadius, 360, 180 );
+      const wireframe = new THREE.WireframeGeometry( gearth );
+      const mearth = new THREE.LineBasicMaterial( { color: 0x900090, linewidth: .5});
+      //this.earth  = new THREE.Line( gearth, mearth );
+      const earth  = new THREE.Line( wireframe, mearth );
+
+      const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.7 );
+      scene.add( directionalLight );
+      const ambiLight = new THREE.AmbientLight( 0x909090 ); // soft white light
+      scene.add( ambiLight );
+
+      scene.add( earth );
+      const raycaster = new THREE.Raycaster();
+      const mouse =  new THREE.Vector2();
+
+      const qGroup = new THREE.Group();
+      var texture:any = null;
+
+      const last_intersect:THREE.Intersection<THREE.Mesh>|null = null;
+
+      store.watch((state) => state.animParams.mapdepth, 
+        (newValue,oldValue) => {
+          console.log(`value changes detected via vuex watch ${oldValue} -> ${newValue}`);
+          const plane = earth.getObjectByName('plane');
+          if(plane) {
+            const scale = 6731 + Number(newValue);
+            plane.scale.set(scale,scale,scale);
+          }
+        })
+      return {scene,camera,renderer,controls,earth,mouse, raycaster, qGroup, 
+        texture,last_intersect};
+  },
   methods: {
     init: function() {
       const store = useStore();
-      //var timeDelta;
-      //let container = document.getElementById('container');
-
-      threeData.scene = new THREE.Scene();
-      threeData.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-
-      threeData.renderer = new THREE.WebGLRenderer();
-
-      threeData.renderer.setSize( window.innerWidth, window.innerHeight );
-      document.body.appendChild( threeData.renderer.domElement );
+     
       document.addEventListener( 'mousemove', this.mouseMove, false );
-
 
       //Vue.axios.get('earthquakes/',{params:{date:'72-hoursago'}}).then( result=> {
       //        return loadQuakesRasmus(result.data,this.$store.state.animParams);  
@@ -131,10 +134,10 @@ export default  defineComponent({
 
       console.log(this);
       apiClient.post('/array',{
-          //"start_time":three_days_ago.toISOString().substring(0,19).replace('T',' '),
-          //"end_time":now.toISOString().substring(0,19).replace('T',' '),
-          "start_time":"2021-03-05 21:30:00",
-          "end_time":"2021-03-19 21:30:00",
+          "start_time":three_days_ago.toISOString().substring(0,19).replace('T',' '),
+          "end_time":now.toISOString().substring(0,19).replace('T',' '),
+          //"start_time":"2021-03-05 21:30:00",
+          //"end_time":"2021-03-19 21:30:00",
           //"start_time":"2014-08-13 21:30:00",
           //"end_time":"2014-08-30 21:30:00",
           //"start_time":"2010-04-07 21:30:00",
@@ -152,11 +155,10 @@ export default  defineComponent({
         .then(qdata => {
           quakes=qdata.quakes;
           this.$store.commit('SAVE_QUAKE_PARAMS',qdata.qParams);
-          threeData.qGroup = new THREE.Group();
           for( const  q of quakes) {
-            threeData.qGroup.add(q.mesh);
+            this.qGroup.add(q.mesh);
           }
-          threeData.earth!.add(threeData.qGroup);
+          this.earth.add(this.qGroup);
           this.setCamera();
 
         }) /*.
@@ -164,27 +166,8 @@ export default  defineComponent({
           throw new Error(`API ${error}`);
         })*/;
 
-      //const controls = new OrbitControls( camera, renderer.domElement );
-      threeData.controls = new TrackballControls( threeData.camera as THREE.Camera , threeData.renderer.domElement );
-      threeData.controls.addEventListener( 'change', this.onChange  );
-
-      var gearth = new THREE.SphereGeometry(earthRadius, 360, 180 );
-      const wireframe = new THREE.WireframeGeometry( gearth );
-      var mearth = new THREE.LineBasicMaterial( { color: 0x900090, linewidth: .5});
-      //this.earth  = new THREE.Line( gearth, mearth );
-      threeData.earth  = new THREE.Line( wireframe, mearth );
-
-      var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.7 );
-      threeData.scene.add( directionalLight );
-      const ambiLight = new THREE.AmbientLight( 0x909090 ); // soft white light
-      threeData.scene.add( ambiLight );
-
-      threeData.scene.add( threeData.earth );
-    
-      //loadDataRasmuskr("http://isapi.rasmuskr.dk/api/earthquakes/?date=72-hoursago",this.addQuakes);
-
-      //this.timeStart = new Date().getTime();
-      this.$store.commit('START_TIME');
+      this.controls.addEventListener( 'change', this.onChange  );
+      this.$store.commit(MutationType.StartTime);
 
       //camera.position.z = earthRadius+10;
       //camera.position.addVectors ( qParams.centerOfMass, new THREE.Vector(10,0,0));
@@ -195,25 +178,38 @@ export default  defineComponent({
       // ACHTUNG: Check attribution
       // map.eachLayer(function(layer)  {attr =layer.getAttribution();});
       this.attribution = attr;
-      threeData.texture=loadMap(threeData.earth!,canvas,map);
+      this.texture=loadMap(this.earth,canvas,map);
     },
     setCamera: function() {
         const store=useStore();
-        threeData.camera!.position.copy ( new THREE.Vector3(-20,50,50).add(store.state.quakeParams!.centerOfMass!) );
-        threeData.camera!.up.copy(store.state.quakeParams!.centerOfMass!.clone().normalize());	
-        threeData.camera!.lookAt(store.state.quakeParams!.centerOfMass!);
+        this.camera.position.copy ( new THREE.Vector3(-20,50,50).add(store.state.quakeParams!.centerOfMass!) );
+        this.camera.up.copy(store.state.quakeParams!.centerOfMass!.clone().normalize());	
+        this.camera.lookAt(store.state.quakeParams!.centerOfMass!);
 
-        threeData.controls!.target.copy(store.state.quakeParams!.centerOfMass!);
-        threeData.controls!.update();
+        this.controls.target.copy(store.state.quakeParams!.centerOfMass!);
+        this.controls.update();
         //threeData.controls!.enablePan = false;
         //threeData.controls!.enableDamping = true;
     },
     mouseMove(event:THREE.Event) {
-      threeData.mouse!.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-      threeData.mouse!.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+      this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+      this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
     },
     onChange ( event:THREE.Event ) {
         console.log("Target:"+event.target.target.x);
+        /*const g = new THREE.IcosahedronGeometry(1,6);
+        const m = new THREE.MeshLambertMaterial({color: 0xffffff }).clone();
+        const s:any = new THREE.Mesh(g,m);
+        s.position.copy(event.target.target);
+        this.earth.add(s);
+*/
+        //this.scene.remove(this.texture)
+        //this.texture.material.dispose();
+        /*const  selectedObject = this.earth.getObjectByName('kort');
+        if(selectedObject) {
+          this.earth.remove( selectedObject );
+          selectedObject.clear(); 
+        }*/
         //event;
         // ACHTUNG: where is the mapper? Hér ætti að elta viewið
         /*(this.$refs["mapper"] as typeof Mapper).rePosition(cart2Geo(event.target.target.x,event.target.target.y,event.target.target.z));
@@ -239,24 +235,24 @@ export default  defineComponent({
         }
         //		if(! qParams.centerOfMass === undefined) {
         //		}
-        threeData.controls!.update();
-        threeData.camera!.up.copy(threeData.camera!.position.clone().normalize());	
+        this.controls.update();
+        this.camera.up.copy(this.camera!.position.clone().normalize());	
 
         // update the picking ray with the camera and mouse position
-        threeData.raycaster!.setFromCamera( threeData.mouse!, threeData.camera! );
+        this.raycaster.setFromCamera( this.mouse, this.camera );
 
         // calculate objects intersecting the picking ray
-        const intersects:any[] = threeData.raycaster!.intersectObjects( threeData.qGroup!.children );
+        const intersects:any[] = this.raycaster.intersectObjects( this.qGroup.children );
 
-        if(intersects.length > 0 && threeData.last_intersect != intersects[0]) {
+        if(intersects.length > 0 && this.last_intersect != intersects[0]) {
           intersects[ 0 ].object.material.color.set( 0xffffff );
           this.qDetail = intersects[0].object.quake;
           this.showDetail = true;
           intersects[ 0 ].object.material.color.set( 0xffffff );
-          threeData.last_intersect = intersects[0];
+          this.last_intersect = intersects[0];
         } else {
           this.showDetail = false;
-          threeData.last_intersect = null ;
+          this.last_intersect = null ;
         }
         /*		earth.rotation.x += 0.00001;
         earth.rotation.y += 0.00001;*/
@@ -264,7 +260,7 @@ export default  defineComponent({
         //camera.lookAt(earth.localToWorld(qParams.centerOfMass.clone()));
         //COM.getWorldPosition()
       }
-      threeData.renderer!.render(threeData.scene! /*as THREE.Object3D*/, threeData.camera!);
+      this.renderer.render(this.scene! /*as THREE.Object3D*/, this.camera!);
       
     }
   },
@@ -297,6 +293,8 @@ a {
 }
 #container{
   margin: 0;
+  z-index:-1;
+
 }
 .qi-desc {
   font-weight: bold;
