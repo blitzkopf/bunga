@@ -1,5 +1,5 @@
+import { QuakeParams } from '@/store/state';
 import * as THREE from 'three';
-
 export const earthRadius = 6731.0;
 
 export class Quake {
@@ -88,7 +88,7 @@ export function loadQuakesRasmus( data:any ,animParams:any) {
 	}
 	return processQuakes(quakes,animParams)
 }
-export function loadQuakesSkjalftalisa( input:any,animParams:any) {
+export function loadQuakesSkjalftalisa( input:any,animParams:any):{quakes:Quake[],qParams:QuakeParams} {
 	const data = input.data;
 	const quakes=[];
 	for (let i = 0; i < data.event_type.length; i++) { 
@@ -103,7 +103,7 @@ export function loadQuakesSkjalftalisa( input:any,animParams:any) {
 	return processQuakes(quakes,animParams)
 }
 
-function processQuakes(quakes: Quake[],animParams:any) {
+function processQuakes(quakes: Quake[],animParams:any):{quakes:Quake[],qParams:QuakeParams} {
 	const qParams=calculatePositions(quakes,animParams);
 	/* figure out how to get this out of state */
 	//const hour = 60*60;
@@ -121,8 +121,8 @@ function processQuakes(quakes: Quake[],animParams:any) {
 		//opacityKF
 		]);*/
 
+	const g = new THREE.IcosahedronGeometry(1,5);
 	for(const q of quakes) {
-		const g = new THREE.IcosahedronGeometry(q.size * animParams.sizeMultiplier,5);
 		const m = new THREE.MeshLambertMaterial({color: 0xffffff }).clone();
 		const s:any = new THREE.Mesh(g,m);
 		/* let mixer = new THREE.AnimationMixer(s);
@@ -139,6 +139,8 @@ function processQuakes(quakes: Quake[],animParams:any) {
 		s.visible = true;
 		action.play();
 		*/
+		const size=q.size * animParams.sizeMultiplier
+		s.scale.set(size,size,size)
 		s.position.copy(q.pos);
 		/* Achtung : Typescript is not happy */
 		s.quake=q;

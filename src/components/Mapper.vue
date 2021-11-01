@@ -2,47 +2,109 @@
     <div id="mapid"/>
 </template>
 
-<script type="ts">
+<script lang="ts">
+import { defineComponent }  from 'vue'
 import * as L from 'leaflet';
+import * as THREE from 'three'
 import { mapState } from 'vuex';
 import {cart2Geo } from '../utils/quake'
 
-export default {
+export default defineComponent({
   name: 'Mapper',
   props: {
     lat: Number,
     lon: Number
   },
-  methods: {
-    loaded: function() {
-      if(typeof this.canvas === 'undefined') {
-        this.canvas = document.createElement('canvas');
-        this.canvas.height=1024;
-        this.canvas.width=1024;
-      } 
-      var ctx = this.canvas.getContext('2d');
-      ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      var x  = document.getElementsByClassName("leaflet-tile-container");
-      var imgs = x[0].getElementsByTagName("img");
-      for( let img of imgs ) {
-        let pos=img._leaflet_pos;
-        ctx.drawImage(img,pos.x,pos.y);
-      }
+  setup (props,context) {
+    const canvas = document.createElement('canvas');
+    //const canvas = L.svg();
+    canvas.height=2048;
+    canvas.width=2048;
+    var mymap:L.Map|null = null ;
 
-      this.$emit('mapLoaded',this.canvas,this.mymap);
-    },
+    const loaded = (ev:THREE.Event) => {  
+      console.log(`loaded ${ev.target}`)
+      console.log(`mymap.bounds ${mymap?.getBounds()}`)  
+      console.log(`mymap.pixelBounds ${mymap?.getPixelBounds()}`)  
+      const ctx = canvas.getContext('2d');
+      ctx!.clearRect(0, 0, canvas.width, canvas.height);
+      //<div class="leaflet-pane leaflet-map-pane" style="transform: translate3d(-297px, -24px, 0px);">
+      //<div class="leaflet-pane leaflet-tile-pane"><div class="leaflet-layer " style="z-index: 1; opacity: 1;">
+      const mapPane:any = mymap?.getPane('mapPane');
+      const panePos = mapPane._leaflet_pos
+      console.log(`mapPane ${mapPane}`)
+      mymap?.eachLayer(function(layer){
+        layer.bindPopup('Hello');
+        //const x  = document.getElementsByClassName("leaflet-tile-container");
+        const container = (layer as L.GridLayer).getContainer();
+        if (container) {
+          const imgs = container.getElementsByTagName("img");
+          //const imgs = container.getElementsByClassName("leaflet-tile-loaded");
+          //img.leaflet-tile.leaflet-tile-loaded
+          for( let img of imgs ) {
+            const hakk:any = img
+            const pos=hakk._leaflet_pos;
+            ctx!.drawImage(img,pos.x+panePos.x,pos.y+panePos.y);
+          }
+        }
+      });
 
-    mapsetup: function(mapView) {
+      context.emit('mapLoaded',canvas,mymap);
+    };
+   
+    const mapsetup = (mapView:{lat: number, lon:number,r:number}) => {
     /* this.div = document.createElement('div');
       this.div.height=512;
       this.div.width=512;*/
+      if(mymap === null) {
+        mymap = L.map('mapid', {
+         
+        })
+      
+        L.tileLayer('https://689gkroy78.execute-api.eu-west-1.amazonaws.com/test/geoserver/www/imo_basemap_epsg3857/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; <a href="https://vedur.is">Icelandic Met Office 2019</a> | National Land Survey of Iceland 2019 | © OpenStreetMap contributors',
+            //id:'EPSG:3857',
+            //layers:'LMI_Kort_3857',
+            //layers:'LMI_hillshade,LMI_Kort,Ornefni_an_mannvirkja',
+            tileSize: 256,
+            //zoomOffset: -2,
+            crossOrigin: "anonymous"
+          } 
+        ).addTo(mymap).on('load',loaded).on('change',moveend);
+      }
       console.log(`initial postion  ${mapView.lat} ${mapView.lon} `);
+      mymap.setView([mapView.lat,mapView.lon], 9);
+    };
+    const moveend = (ev:THREE.Event) => {
+      console.log(`moveend ${ev.target}`)
+      context.emit('mapLoaded',canvas,mymap);
 
-      this.mymap = L.map('mapid', {
-        renderer: L.canvas()
-      }).setView([mapView.lat,mapView.lon], 9);
-       
-      /*L.tileLayer('https://gis.lmi.is/geoserver/gwc/service/wmts?SERVICE=WMTS&REQUEST=GetCapabilities', {
+    }
+    const rePosition = (mapView:{lat: number, lon:number,r:number}) => {
+      console.log(`Re postion  ${mapView.lat} ${mapView.lon} `);
+      mymap!.setView([mapView.lat,mapView.lon], 9);//.on('moveend',moveend);
+      //mymap!.panTo([mapView.lat,mapView.lon]);//.on('moveend',moveend);
+      
+      //context.emit('mapLoaded',canvas,mymap);
+    };
+
+    return {canvas, mymap,mapsetup,rePosition}
+
+  },
+  computed: mapState(['qParams']),
+  watch: {
+    "$store.state.quakeParams"(newValue, oldValue) {
+      console.log(`Updating from ${oldValue} to ${newValue}`);
+
+      // Do whatever makes sense now
+      if (Object.keys(newValue).length !== 0 ) {
+        this.mapsetup(cart2Geo(newValue.centerOfMass.x,newValue.centerOfMass.y,newValue.centerOfMass.z));
+      }
+    },
+  }
+})
+
+/*L.tileLayer('https://gis.lmi.is/geoserver/gwc/service/wmts?SERVICE=WMTS&REQUEST=GetCapabilities', {
           attribution: 'Map data &copy; <a href="https://www.lmi.org/is">Landmælingar Íslands</a>',
           layers:'LMI_Kort_3857',
           //layers:'LMI_hillshade,LMI_Kort,Ornefni_an_mannvirkja',
@@ -82,7 +144,7 @@ export default {
           crossOrigin: "anonymous"
       } 
       ).addTo(this.mymap).on('load',this.loaded);*/
-     L.tileLayer('https://689gkroy78.execute-api.eu-west-1.amazonaws.com/test/geoserver/www/imo_basemap_epsg3857/{z}/{x}/{y}.png', {
+     /*L.tileLayer('https://689gkroy78.execute-api.eu-west-1.amazonaws.com/test/geoserver/www/imo_basemap_epsg3857/{z}/{x}/{y}.png', {
           attribution: 'Map data &copy; <a href="https://vedur.is">Icelandic Met Office 2019</a> | National Land Survey of Iceland 2019 | © OpenStreetMap contributors',
           //id:'EPSG:3857',
           //layers:'LMI_Kort_3857',
@@ -91,7 +153,7 @@ export default {
           //zoomOffset: -2,
           crossOrigin: "anonymous"
       } 
-      ).addTo(this.mymap).on('load',this.loaded);
+      ).addTo(this.mymap).on('load',this.loaded);*/
      /* L.tileLayer('https://gisvi.vedur.is/arcgis/rest/services/grunnkort/grunnkort_cache_isn93/MapServer/tile/{z}/{y}/{x}',{ 
         maxZoom: 13,
         minZoom: 5,
@@ -119,27 +181,7 @@ export default {
           crossOrigin: "anonymous"
       }).addTo( this.mymap ).on('load',this.createCanvas); */
 
-    
-    } ,
-    rePosition: function(mapView) {
-      console.log(`repostion  ${mapView.lat} ${mapView.lon} `);
 
-      this.mymap.setView([mapView.lat,mapView.lon], 9);  
-    }
-
-  },
-  computed: mapState(['qParams']),
-  watch: {
-    "$store.state.quakeParams"(newValue, oldValue) {
-      console.log(`Updating from ${oldValue} to ${newValue}`);
-
-      // Do whatever makes sense now
-      if (Object.keys(newValue).length !== 0 ) {
-        this.mapsetup(cart2Geo(newValue.centerOfMass.x,newValue.centerOfMass.y,newValue.centerOfMass.z));
-      }
-    },
-  }
-}
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -159,8 +201,8 @@ a {
   color: #42b983;
 }
 #mapid { 
-  height: 1024px; 
-  width: 1024px ; 
+  height: 2048px; 
+  width: 2048px ; 
   transform: scale(0);
   position: absolute;
   /*visibility: hidden;*/

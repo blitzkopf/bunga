@@ -23,7 +23,7 @@
 
     </o-sidebar> 
     <Mapper ref="mapper" @mapLoaded="loadMapHandler"/>
-    <Controls /> 
+    <Controls @quakesLoaded="quakesLoaded"/> 
   <div id="footer" class="content has-text-centered" >
     <span class="credit-list">Created by <a href="mailto:blitzkopf@gmail.com">Yngvi Þór</a> using Three.js, data provided by <a href="http://www.rasmuskr.dk" target="_blank">RasmusKr</a> and <a href="https://www.vedur.is/"> Veðurstofa Íslands </a></span>
   <span   v-html="attribution" /> 
@@ -37,7 +37,7 @@ import * as THREE from 'three';
 import * as L from 'leaflet';
 import Mapper from './Mapper.vue'
 import Controls from './Controls.vue'
-import {/*cart2Geo,*/ Quake } from '../utils/quake'
+import {cart2Geo, Quake } from '../utils/quake'
 
 /*Vue.use(Sidebar);
 Vue.use(Mapper);*/
@@ -46,13 +46,14 @@ Vue.use(Mapper);*/
 //import  { TrackballControls}  from 'three-controls';
 import  { TrackballControls}  from 'three/examples/jsm/controls/TrackballControls';
 
-import { earthRadius , loadQuakesSkjalftalisa} from '../utils/quake'
+import { earthRadius } from '../utils/quake'
 import { loadMap } from '../utils/map'
-import  apiClient from '../dataloads'
 
 import { useStore } from '../store'
 import { ActionTypes } from '../store/actions'
 import { MutationType } from '../store/mutations';
+import { QuakeParams } from '../store/state';
+
 //import { Mapper } from 'vuex';
 
 let quakes:Quake[] = []
@@ -116,55 +117,40 @@ export default  defineComponent({
             const scale = 6731 + Number(newValue);
             plane.scale.set(scale,scale,scale);
           }
-        })
+        });
+      const setCamera= () => {
+        const store=useStore();
+        camera.position.copy ( new THREE.Vector3(-20,50,50).add(store.state.quakeParams!.centerOfMass!) );
+        camera.up.copy(store.state.quakeParams!.centerOfMass!.clone().normalize());	
+        camera.lookAt(store.state.quakeParams!.centerOfMass!);
+
+        controls.target.copy(store.state.quakeParams!.centerOfMass!);
+        controls.update();
+        //threeData.controls!.enablePan = false;
+        //threeData.controls!.enableDamping = true;
+      };
+      const quakesLoaded = (qdata:{quakes:Quake[],qParams:QuakeParams}) =>{
+          for ( const q of quakes ) {
+            qGroup.remove(q.mesh)
+            q.mesh.material.dispose();
+            //q.mesh.dispose();
+          }
+          quakes=qdata.quakes;
+          store.commit(MutationType.SaveQuakeParams,qdata.qParams);
+          for( const  q of quakes) {
+            qGroup.add(q.mesh);
+          }
+          earth.add(qGroup);
+          setCamera();
+        } 
       return {scene,camera,renderer,controls,earth,mouse, raycaster, qGroup, 
-        texture,last_intersect};
+        texture,last_intersect,setCamera,quakesLoaded};
   },
   methods: {
     init: function() {
-      const store = useStore();
+      //const store = useStore();
      
       document.addEventListener( 'mousemove', this.mouseMove, false );
-
-      //Vue.axios.get('earthquakes/',{params:{date:'72-hoursago'}}).then( result=> {
-      //        return loadQuakesRasmus(result.data,this.$store.state.animParams);  
-      let now = new Date();
-      let three_days_ago = new Date();
-      three_days_ago.setTime(now.getTime()-7*24*60*60*1000);
-
-      console.log(this);
-      apiClient.post('/array',{
-          "start_time":three_days_ago.toISOString().substring(0,19).replace('T',' '),
-          "end_time":now.toISOString().substring(0,19).replace('T',' '),
-          //"start_time":"2021-03-05 21:30:00",
-          //"end_time":"2021-03-19 21:30:00",
-          //"start_time":"2014-08-13 21:30:00",
-          //"end_time":"2014-08-30 21:30:00",
-          //"start_time":"2010-04-07 21:30:00",
-          //"end_time":"2010-04-14 23:30:00",
-
-          "depth_min":0,"depth_max":25,"size_min":0,"size_max":18,
-          "magnitude_preference":["Mlw","Autmag"],"event_type":["qu"],"originating_system":["SIL picks"],
-          "area":[[68,-32],[61,-32],[61,-4],[68,-4]],
-          "fields":["event_id","lat","long","depth","time","magnitude","event_type","originating_system"]
-        })
-        .then( result=> {
-          console.log(this);
-          return loadQuakesSkjalftalisa(result.data,store.state.animParams);
-        })
-        .then(qdata => {
-          quakes=qdata.quakes;
-          this.$store.commit('SAVE_QUAKE_PARAMS',qdata.qParams);
-          for( const  q of quakes) {
-            this.qGroup.add(q.mesh);
-          }
-          this.earth.add(this.qGroup);
-          this.setCamera();
-
-        }) /*.
-        catch(error => {
-          throw new Error(`API ${error}`);
-        })*/;
 
       this.controls.addEventListener( 'change', this.onChange  );
       this.$store.commit(MutationType.StartTime);
@@ -180,17 +166,7 @@ export default  defineComponent({
       this.attribution = attr;
       this.texture=loadMap(this.earth,canvas,map);
     },
-    setCamera: function() {
-        const store=useStore();
-        this.camera.position.copy ( new THREE.Vector3(-20,50,50).add(store.state.quakeParams!.centerOfMass!) );
-        this.camera.up.copy(store.state.quakeParams!.centerOfMass!.clone().normalize());	
-        this.camera.lookAt(store.state.quakeParams!.centerOfMass!);
-
-        this.controls.target.copy(store.state.quakeParams!.centerOfMass!);
-        this.controls.update();
-        //threeData.controls!.enablePan = false;
-        //threeData.controls!.enableDamping = true;
-    },
+    
     mouseMove(event:THREE.Event) {
       this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
       this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
@@ -212,10 +188,11 @@ export default  defineComponent({
         }*/
         //event;
         // ACHTUNG: where is the mapper? Hér ætti að elta viewið
-        /*(this.$refs["mapper"] as typeof Mapper).rePosition(cart2Geo(event.target.target.x,event.target.target.y,event.target.target.z));
-        if(typeof this.texture !== 'undefined') {
+        (this.$refs.mapper as typeof Mapper).rePosition(cart2Geo(event.target.target.x,event.target.target.y,event.target.target.z));
+        /*if(typeof this.texture !== 'undefined') {
           this.texture.needsUpdate = true;
         }*/
+        //(this.$refs.mapper as typeof Mapper).mapsetup(cart2Geo(event.target.target.x,event.target.target.y,event.target.target.z));
     }, 
     animate: function () {
       requestAnimationFrame( this.animate );

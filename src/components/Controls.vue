@@ -25,6 +25,7 @@
 			v-model="endTime">
 			</o-datetimepicker>
 		</o-field>
+		<o-button @click="fetch">Play</o-button>
 		<!-- <o-field label="Depth of map">
 			<o-slider v-model="mapdepth" min="-40" max="1"></o-slider>
 		</o-field> -->
@@ -63,13 +64,17 @@ Also see the Icelandic Meteorological Institute <a href="https://www.vedur.is/sk
 </template>
 
 <script lang="ts">
-import { defineComponent ,computed}  from 'vue';
+import { defineComponent ,computed, onMounted,ref }  from 'vue';
 import { useStore } from '../store';
 import { MutationType } from '../store/mutations'
+import  apiClient from '../dataloads'
+import { loadQuakesSkjalftalisa } from '../utils/quake'
+
 
 export default defineComponent({
     name: 'Controls',
-    setup() {
+	emits: ['quakesLoaded'],
+    setup( props, context) {
         const store = useStore();
         const mapdepth = computed({
             get: ()=> store.state.animParams.mapdepth ,
@@ -83,11 +88,56 @@ export default defineComponent({
                 store.commit(MutationType.SetMinQuakeSize,value);
             },
         },)
-		const startTime = new Date();
-		const endTime = new Date();
-		startTime.setTime(endTime.getTime()-7*24*60*60*1000);
+		/*var eT = Date.now();
+		const endTime = computed ({
+			get: () =>  { return new Date(eT);},
+			set: (value:Date) => {
+				eT = value.getDate();
+			}
+		})*/
+		const tTime = new Date() 
+		const endTime = ref(new Date());
+		tTime.setTime(tTime.getTime()-7*24*60*60*1000);
+		const startTime = ref(tTime);
+		
+		const fetch= () => {
+			//Vue.axios.get('earthquakes/',{params:{date:'72-hoursago'}}).then( result=> {
+			//        return loadQuakesRasmus(result.data,this.$store.state.animParams);  
+		
+			console.log(this);
+			apiClient.post('/array',{
+				"start_time":startTime.value.toISOString().substring(0,19).replace('T',' '),
+				"end_time":endTime.value.toISOString().substring(0,19).replace('T',' '),
+				//"start_time":"2021-03-05 21:30:00",
+				//"end_time":"2021-03-19 21:30:00",
+				//"start_time":"2014-08-13 21:30:00",
+				//"end_time":"2014-08-30 21:30:00",
+				//"start_time":"2010-04-07 21:30:00",
+				//"end_time":"2010-04-14 23:30:00",
 
-        return {mapdepth,minQuakeSize, startTime, endTime}
+				"depth_min":0,"depth_max":25,"size_min":0,"size_max":18,
+				"magnitude_preference":["Mlw","Autmag"],"event_type":["qu"],"originating_system":["SIL picks"],
+				"area":[[68,-32],[61,-32],[61,-4],[68,-4]],
+				"fields":["event_id","lat","long","depth","time","magnitude","event_type","originating_system"]
+			})
+			.then( result=> {
+				console.log(this);
+				return loadQuakesSkjalftalisa(result.data,store.state.animParams);
+				})
+			.then(qdata => {
+					context.emit('quakesLoaded',qdata);
+				})
+			/*.catch(error => {
+				throw new Error(`API ${error}`);
+				})*/;
+		}
+		const mounted = async () => {
+			await fetch()
+		}
+
+		onMounted(mounted);
+
+        return {mapdepth,minQuakeSize, startTime, endTime, fetch}
     },
     data() {
         return {
