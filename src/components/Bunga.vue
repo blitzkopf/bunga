@@ -1,5 +1,5 @@
 <template>
-  <div id="container" ref="container" class="content">
+  <div id="container" ref="container" class="content" >
     <o-sidebar
       :open = "true"
       v-show = "showDetail"
@@ -142,7 +142,20 @@ export default  defineComponent({
           }
           earth.add(qGroup);
           setCamera();
-        } 
+        }
+      const keyHandler = (e:KeyboardEvent) => {
+        console.log("keypress:"+e.code);
+        if( e.code === "PageDown") {
+          store.commit(MutationType.AdjustMapdepth,-.5);
+        } else if( e.code === "PageUp") {
+          store.commit(MutationType.AdjustMapdepth,.5);
+        }
+      }
+      window.addEventListener('keydown', keyHandler);
+    /* Where should this go ? 
+      beforeDestroy() {
+      window.removeEventListener('keyup', this.handler);
+    } */
       return {scene,camera,renderer,controls,earth,mouse, raycaster, qGroup, 
         texture,last_intersect,setCamera,quakesLoaded};
   },

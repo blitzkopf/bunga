@@ -61,7 +61,7 @@ export default defineComponent({
          
         })
       
-        L.tileLayer('https://689gkroy78.execute-api.eu-west-1.amazonaws.com/test/geoserver/www/imo_basemap_epsg3857/{z}/{x}/{y}.png', {
+        /*L.tileLayer('https://689gkroy78.execute-api.eu-west-1.amazonaws.com/test/geoserver/www/imo_basemap_epsg3857/{z}/{x}/{y}.png', {
             attribution: 'Map data &copy; <a href="https://vedur.is">Icelandic Met Office 2019</a> | National Land Survey of Iceland 2019 | © OpenStreetMap contributors',
             //id:'EPSG:3857',
             //layers:'LMI_Kort_3857',
@@ -69,11 +69,20 @@ export default defineComponent({
             tileSize: 256,
             //zoomOffset: -2,
             crossOrigin: "anonymous"
-          } 
+          } */
+       L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+          attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+          maxZoom: 18,
+          id: 'mapbox/outdoors-v11',
+          tileSize: 512,
+          zoomOffset: -1,
+          accessToken: 'pk.eyJ1IjoiYmxpdHprb3BmIiwiYSI6ImNrbThpd3Y2eTBlNzAyd3BobXQydTlxbGUifQ.c8CmH2MD4SzV_4HnMAIJlw',
+          crossOrigin: "anonymous"
+       }
         ).addTo(mymap).on('load',loaded).on('change',moveend);
       }
       console.log(`initial postion  ${mapView.lat} ${mapView.lon} `);
-      mymap.setView([mapView.lat,mapView.lon], 9);
+      mymap.setView([mapView.lat,mapView.lon], 10);
     };
     const moveend = (ev:THREE.Event) => {
       console.log(`moveend ${ev.target}`)
@@ -82,7 +91,7 @@ export default defineComponent({
     }
     const rePosition = (mapView:{lat: number, lon:number,r:number}) => {
       console.log(`Re postion  ${mapView.lat} ${mapView.lon} `);
-      mymap!.setView([mapView.lat,mapView.lon], 9);//.on('moveend',moveend);
+      mymap!.setView([mapView.lat,mapView.lon], 10);//.on('moveend',moveend);
       //mymap!.panTo([mapView.lat,mapView.lon]);//.on('moveend',moveend);
       
       //context.emit('mapLoaded',canvas,mymap);

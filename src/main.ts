@@ -1,7 +1,7 @@
 import { createApp } from 'vue';
 import App from './App.vue'
 import store from './store'
-import { Slider,Field,Sidebar,Switch,Datetimepicker, Datepicker,Timepicker,Input,Button  } from '@oruga-ui/oruga-next'
+import { Slider,Field,Sidebar,Switch,Datetimepicker, Datepicker,Timepicker,Input,Button,Select  } from '@oruga-ui/oruga-next'
 import '@oruga-ui/oruga-next/dist/oruga.css'
 
 import VueGtag from "vue-gtag";
@@ -20,4 +20,5 @@ const app = createApp(App)
     .use(Timepicker)
     .use(Input)
     .use(Button)
+    .use(Select)
     .mount('#app');

@@ -11,6 +11,14 @@
 		<h1>Bunga-Bunga</h1>
 		<h2> Earthquake the movie </h2>
 		<h3> Earthquakes in Iceland in 3D animation</h3>
+		<o-field label="period">
+			<o-select @change="handlePresets($event)" v-model="presetSel">
+			<option value="-1"> Now </option>
+			<option v-for="(p,i) in presets" v-bind:key="i" v-bind:value="i"> 
+				{{p.name}} 
+			</option>
+			</o-select>
+		</o-field>
 		<o-field label="start time">
 			<o-datetimepicker rounded placeholder="Click to select..." icon="calendar" 
 			locale="en-gb" :datepicker="{ 'show-week-number':false }" 
@@ -95,16 +103,46 @@ export default defineComponent({
 				eT = value.getDate();
 			}
 		})*/
+		const presets= [ 
+			{
+				name: 'Bárðarbunga 2014',
+				start_time :"2014-08-13 21:30:00",
+				end_time :"2014-08-30 21:30:00",
+			},
+			{
+				name: 'Geldingadalir 2021',
+				start_time:"2021-03-05 21:30:00",
+				end_time:"2021-03-19 21:30:00",
+			},
+			{
+				name: '5vh 2010',
+				start_time:"2010-03-14 21:30:00",
+				end_time:"2010-03-20 23:30:00",
+			},
+			{
+				name: 'Eyjafjallajökull 2010',
+				start_time:"2010-04-07 21:30:00",
+				end_time:"2010-04-14 23:30:00",
+			},			{
+				name: 'Grímsvötn 2011',
+				start_time :"2011-05-19 21:30:00",
+				end_time :"2011-05-23 00:00:00",
+			},
+
+
+		];
 		const tTime = new Date() 
 		const endTime = ref(new Date());
 		tTime.setTime(tTime.getTime()-7*24*60*60*1000);
 		const startTime = ref(tTime);
-		
+		const presetSel = ref(-1);
+
 		const fetch= () => {
 			//Vue.axios.get('earthquakes/',{params:{date:'72-hoursago'}}).then( result=> {
 			//        return loadQuakesRasmus(result.data,this.$store.state.animParams);  
 		
 			console.log(this);
+
 			apiClient.post('/array',{
 				"start_time":startTime.value.toISOString().substring(0,19).replace('T',' '),
 				"end_time":endTime.value.toISOString().substring(0,19).replace('T',' '),
@@ -131,13 +169,20 @@ export default defineComponent({
 				throw new Error(`API ${error}`);
 				})*/;
 		}
+		const handlePresets = () => {
+			const selection = presets[presetSel.value];
+			startTime.value = new Date(selection.start_time);
+			endTime.value = new Date(selection.end_time);
+			fetch();
+
+		}
 		const mounted = async () => {
 			await fetch()
 		}
 
 		onMounted(mounted);
 
-        return {mapdepth,minQuakeSize, startTime, endTime, fetch}
+        return {mapdepth,minQuakeSize, startTime, endTime,presetSel, handlePresets,fetch,presets}
     },
     data() {
         return {
@@ -147,7 +192,8 @@ export default defineComponent({
 			fullwidth: false,
 			right: false,
 			expandOnHover: true,
-			reduce: true
+			reduce: true,
+			
         }
     },
 });
