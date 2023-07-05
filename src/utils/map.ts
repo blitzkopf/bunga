@@ -3,7 +3,8 @@ import * as L from 'leaflet';
 
 import * as THREE from 'three';
 import { Plane } from 'three';
-//import store from '../store'
+import { useStore } from '../store'
+
 
 
 // instantiate a loader
@@ -54,7 +55,8 @@ function calcGeometry(map:L.Map):THREE.PolyhedronGeometry {
 
 export function loadMap(earth:THREE.Object3D,canvas:HTMLCanvasElement,map:L.Map):THREE.CanvasTexture
 {
-	const depth=6731-30
+    const store=useStore();
+    const depth = store.getters.mapRadius;
     const geometry = calcGeometry(map);
     if( plane !== null) {
         earth.remove(plane);
@@ -75,8 +77,8 @@ export function loadMap(earth:THREE.Object3D,canvas:HTMLCanvasElement,map:L.Map)
    // }
     plane = new THREE.Mesh( geometry, material! );
     //plane.position.copy(qParams.centerOfMass);
-    //plane.scale.setScalar(depth);
-    plane.scale.set(depth,depth,depth);
+    plane.scale.setScalar(depth);
+    //plane.scale.set(depth,depth,depth);
     plane.name='plane';
     earth.add( plane );
 

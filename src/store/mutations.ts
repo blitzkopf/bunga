@@ -8,6 +8,7 @@ export enum MutationType {
   SetAnimTimeLast = 'SET_ANIM_TIME_LAST',
   AddAnimTime = 'ADD_ANIM_TIME',
   StartTime = 'START_TIME',
+  SetDepthMultiplier = 'SET_DEPTH_MULTIPLIER',
   SetMapdepth = 'SET_MAPDEPTH',
   AdjustMapdepth = 'ADJUST_MAPDEPTH',
   SetMinQuakeSize = 'SET_MIN_QUAKE_SIZE'
@@ -21,6 +22,7 @@ export type Mutations = {
     [MutationType.SetAnimTimeLast](state: State, time: number): void,
     [MutationType.AddAnimTime](state: State, time: number): void,
     [MutationType.StartTime](state: State): void,
+    [MutationType.SetDepthMultiplier](state: State, multiplier:number): void,
     [MutationType.SetMapdepth](state: State, depth:number): void,
     [MutationType.AdjustMapdepth](state: State, depth:number): void,
     [MutationType.SetMinQuakeSize](state: State, size:number): void,
@@ -44,6 +46,9 @@ export const mutations: MutationTree<State> & Mutations = {
   },
   [MutationType.StartTime](state) {
     state.animParams.timeStart = new Date().getTime();
+  },
+  [MutationType.SetDepthMultiplier](state, multiplier) {
+    state.animParams.depthMultiplier = multiplier;
   },
   [MutationType.SetMapdepth](state, depth) {
     state.animParams.mapdepth = depth;

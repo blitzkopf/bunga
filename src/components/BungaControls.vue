@@ -12,7 +12,7 @@
 		<h2> Earthquake the movie </h2>
 		<h3> Earthquakes in Iceland in 3D animation</h3>
 		<o-field label="period">
-			<o-select @change="handlePresets($event)" v-model="presetSel">
+			<o-select @change="handlePresets()" v-model="presetSel">
 			<option value="-1"> Now </option>
 			<option v-for="(p,i) in presets" v-bind:key="i" v-bind:value="i"> 
 				{{p.name}} 
@@ -32,7 +32,7 @@
 			:timepicker="{ 'enable-seconds':false, 'hour-format':'24' }"
 			v-model="endTime">
 			</o-datetimepicker>
-		</o-field>
+		</o-field> 
 		<o-button @click="fetch">Play</o-button>
 		<!-- <o-field label="Depth of map">
 			<o-slider v-model="mapdepth" min="-40" max="1"></o-slider>
@@ -46,7 +46,9 @@
 		Minimum quake size: <br><input id="minQuakeSize" type="range" min="0" max="8" step="0.2"
 			v-model="minQuakeSize">
 		<input type="text" id="minQuakeSizeDisp"  editable="false" class="disp" v-model="minQuakeSize"> <br>
-
+		Depth multiplier:(pgUp/pgDown)<br><input id="depthmult" type="range" min="0.5" max="4" step="0.1"
+			v-model="depthMult" >
+		<input type="text" id="depthmultDisp" editable="false" class="disp" v-model="depthMult"><br>
 	Earthquake age in hours: 
 	<table><tr>	<th style="background-color:#f00; color:white; width:50px">0-4</th>
 				<th style="background-color:#f60; color:white; width:50px">4-12</th>
@@ -71,134 +73,144 @@ Also see the Icelandic Meteorological Institute <a href="https://www.vedur.is/sk
   </section>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { defineComponent ,computed, onMounted,ref }  from 'vue';
 import { useStore } from '../store';
 import { MutationType } from '../store/mutations'
 import  apiClient from '../dataloads'
 import { loadQuakesSkjalftalisa } from '../utils/quake'
+export interface Props {
+  open?: boolean,
+	overlay: boolean,
+	fullheight: boolean,
+	fullwidth: boolean,
+	right: boolean,
+	expandOnHover: boolean,
+	reduce: boolean
+}
 
 
-export default defineComponent({
-    name: 'Controls',
-	emits: ['quakesLoaded'],
-    setup( props, context) {
-        const store = useStore();
-        const mapdepth = computed({
-            get: ()=> store.state.animParams.mapdepth ,
-            set: (value:number)=> { 
-                store.commit(MutationType.SetMapdepth,value);
-            },
-        },)
-		const minQuakeSize = computed({
-            get: ()=> store.state.animParams.minQuakeSize ,
-            set: (value:number)=> { 
-                store.commit(MutationType.SetMinQuakeSize,value);
-            },
-        },)
-		/*var eT = Date.now();
-		const endTime = computed ({
-			get: () =>  { return new Date(eT);},
-			set: (value:Date) => {
-				eT = value.getDate();
-			}
-		})*/
-		const presets= [ 
-			{
-				name: 'Bárðarbunga 2014',
-				start_time :"2014-08-13 21:30:00",
-				end_time :"2014-08-30 21:30:00",
-			},
-			{
-				name: 'Geldingadalir 2021',
-				start_time:"2021-03-05 21:30:00",
-				end_time:"2021-03-19 21:30:00",
-			},
-			{
-				name: '5vh 2010',
-				start_time:"2010-03-14 21:30:00",
-				end_time:"2010-03-20 23:30:00",
-			},
-			{
-				name: 'Eyjafjallajökull 2010',
-				start_time:"2010-04-07 21:30:00",
-				end_time:"2010-04-14 23:30:00",
-			},			{
-				name: 'Grímsvötn 2011',
-				start_time :"2011-05-19 21:30:00",
-				end_time :"2011-05-23 00:00:00",
-			},
+const emit = defineEmits( ['quakesLoaded']);
+
+const store = useStore();
+const mapdepth = computed({
+		get: ()=> store.state.animParams.mapdepth ,
+		set: (value:number)=> { 
+				store.commit(MutationType.SetMapdepth,value);
+		},
+},)
+const depthMult = computed({
+				get: ()=> store.state.animParams.depthMultiplier ,
+				set: (value:number)=> { 
+						store.commit(MutationType.SetDepthMultiplier,value);
+				},
+		},)
+const minQuakeSize = computed({
+				get: ()=> store.state.animParams.minQuakeSize ,
+				set: (value:number)=> { 
+						store.commit(MutationType.SetMinQuakeSize,value);
+				},
+		},)
+/*var eT = Date.now();
+const endTime = computed ({
+	get: () =>  { return new Date(eT);},
+	set: (value:Date) => {
+		eT = value.getDate();
+	}
+})*/
+const presets= [ 
+	{
+		name: 'Bárðarbunga 2014',
+		start_time :"2014-08-13 21:30:00",
+		end_time :"2014-08-30 21:30:00",
+	},
+	{
+		name: 'Geldingadalir 2021',
+		start_time:"2021-03-05 21:30:00",
+		end_time:"2021-03-19 21:30:00",
+	},
+	{
+		name: '5vh 2010',
+		start_time:"2010-03-14 21:30:00",
+		end_time:"2010-03-20 23:30:00",
+	},
+	{
+		name: 'Eyjafjallajökull 2010',
+		start_time:"2010-04-07 21:30:00",
+		end_time:"2010-04-14 23:30:00",
+	},			{
+		name: 'Grímsvötn 2011',
+		start_time :"2011-05-19 21:30:00",
+		end_time :"2011-05-23 00:00:00",
+	},
 
 
-		];
-		const tTime = new Date() 
-		const endTime = ref(new Date());
-		tTime.setTime(tTime.getTime()-7*24*60*60*1000);
-		const startTime = ref(tTime);
-		const presetSel = ref(-1);
+];
+const tTime = new Date() 
+const endTime = ref(new Date());
+tTime.setTime(tTime.getTime()-7*24*60*60*1000);
+const startTime = ref(tTime);
+const presetSel = ref(-1);
 
-		const fetch= () => {
-			//Vue.axios.get('earthquakes/',{params:{date:'72-hoursago'}}).then( result=> {
-			//        return loadQuakesRasmus(result.data,this.$store.state.animParams);  
-		
-			console.log(this);
+const fetch= () => {
+	//Vue.axios.get('earthquakes/',{params:{date:'72-hoursago'}}).then( result=> {
+	//        return loadQuakesRasmus(result.data,this.$store.state.animParams);  
 
-			apiClient.post('/array',{
-				"start_time":startTime.value.toISOString().substring(0,19).replace('T',' '),
-				"end_time":endTime.value.toISOString().substring(0,19).replace('T',' '),
-				//"start_time":"2021-03-05 21:30:00",
-				//"end_time":"2021-03-19 21:30:00",
-				//"start_time":"2014-08-13 21:30:00",
-				//"end_time":"2014-08-30 21:30:00",
-				//"start_time":"2010-04-07 21:30:00",
-				//"end_time":"2010-04-14 23:30:00",
+	console.log(this);
 
-				"depth_min":0,"depth_max":25,"size_min":0,"size_max":18,
-				"magnitude_preference":["Mlw","Autmag"],"event_type":["qu"],"originating_system":["SIL picks"],
-				"area":[[68,-32],[61,-32],[61,-4],[68,-4]],
-				"fields":["event_id","lat","long","depth","time","magnitude","event_type","originating_system"]
-			})
-			.then( result=> {
-				console.log(this);
-				return loadQuakesSkjalftalisa(result.data,store.state.animParams);
-				})
-			.then(qdata => {
-					context.emit('quakesLoaded',qdata);
-				})
-			/*.catch(error => {
-				throw new Error(`API ${error}`);
-				})*/;
-		}
-		const handlePresets = () => {
-			const selection = presets[presetSel.value];
-			startTime.value = new Date(selection.start_time);
-			endTime.value = new Date(selection.end_time);
-			fetch();
+	apiClient.post('/array',{
+		"start_time":startTime.value.toISOString().substring(0,19).replace('T',' '),
+		"end_time":endTime.value.toISOString().substring(0,19).replace('T',' '),
+		//"start_time":"2021-03-05 21:30:00",
+		//"end_time":"2021-03-19 21:30:00",
+		//"start_time":"2014-08-13 21:30:00",
+		//"end_time":"2014-08-30 21:30:00",
+		//"start_time":"2010-04-07 21:30:00",
+		//"end_time":"2010-04-14 23:30:00",
 
-		}
-		const mounted = async () => {
-			await fetch()
-		}
+		"depth_min":0,"depth_max":25,"size_min":0,"size_max":18,
+		"magnitude_preference":["Mlw","Autmag"],"event_type":["qu"],"originating_system":["SIL picks"],
+		"area":[[68,-32],[61,-32],[61,-4],[68,-4]],
+		"fields":["event_id","lat","long","depth","time","magnitude","event_type","originating_system"]
+	})
+	.then( result=> {
+		console.log(this);
+		return loadQuakesSkjalftalisa(result.data,store.state.animParams);
+		})
+	.then(qdata => {
+			emit('quakesLoaded',qdata);
+		})
+	/*.catch(error => {
+		throw new Error(`API ${error}`);
+		})*/;
+}
+const handlePresets = () => {
+	const selection = presets[presetSel.value];
+	startTime.value = new Date(selection.start_time);
+	endTime.value = new Date(selection.end_time);
+	fetch();
 
-		onMounted(mounted);
+}
+const mounted = async () => {
+	await fetch()
+}
 
-        return {mapdepth,minQuakeSize, startTime, endTime,presetSel, handlePresets,fetch,presets}
-    },
-    data() {
-        return {
-			open: true,
+onMounted(mounted);
+
+
+const open=ref(true);
+
+/*const props = withDefaults(defineProps<Props>(), {
+	open: true,
 			overlay: false,
 			fullheight: true,
 			fullwidth: false,
 			right: false,
 			expandOnHover: true,
 			reduce: true,
+})
+*/
 			
-        }
-    },
-});
-
-
 </script>
 
 <style>

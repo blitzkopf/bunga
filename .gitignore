@@ -22,7 +22,6 @@ pnpm-debug.log*
 *.sln
 *.sw?
 .yarn/*
-!.yarn/cache
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases

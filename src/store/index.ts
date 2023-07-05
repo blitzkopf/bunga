@@ -10,14 +10,14 @@ import {
 import { State, state } from './state'
 import { Mutations, mutations } from './mutations'
 import { Actions, actions } from './actions'
-//import { Getters, getters } from './getters'
+import { Getters, getters } from './getters'
 
 export const store = createStore<State>({
     plugins: process.env.NODE_ENV === 'development' ? [/*createLogger()*/] : [],
     state,
     mutations,
     actions,
-    /*getters*/
+    getters
   })
   export function useStore() {
     return store as Store
@@ -37,11 +37,11 @@ export const store = createStore<State>({
       payload?: Parameters<Actions[K]>[1],
       options?: DispatchOptions
     ): ReturnType<Actions[K]>
-  } /*& {
+  } & {
     getters: {
       [K in keyof Getters]: ReturnType<Getters[K]>
     }
-  }*/
+  }
 /*export type  Store = AnimParamsStore<Pick<RootState, 'animParams'>>
 & QParamsStore<Pick<RootState, 'qParams'>>; */
 

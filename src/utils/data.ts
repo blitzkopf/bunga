@@ -1,4 +1,5 @@
-import {Quake} from './quake.js'
+export {}
+/*import {Quake} from './quake.js'
 import * as $ from 'jquery';
 
 
@@ -14,4 +15,4 @@ export function loadDataRasmuskr(url,callback) {
 	});
 
 	
-}
+}*/

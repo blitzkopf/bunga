@@ -7,7 +7,7 @@ export type QuakeParams = {
   centerOfMass?:THREE.Vector3,
 };
 export type AnimParams = {
-  depthScale: number,
+  depthMultiplier: number,
   animLength: number, // seconds
   finalSceneLength: number, //seconds
   minQuakeSize: number ,//
@@ -34,7 +34,7 @@ export const state: State = {
       centerOfMass:new THREE.Vector3(0,0,0),
     },
     animParams: {
-      depthScale: 4.0,
+      depthMultiplier: 2.0,
       animLength: 120, // seconds
       finalSceneLength: 30, //seconds
       minQuakeSize: 0 ,//

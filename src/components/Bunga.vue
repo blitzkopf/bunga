@@ -21,7 +21,7 @@
     </tbody>
   </table>
 
-    </o-sidebar> 
+    </o-sidebar>
     <Mapper ref="mapper" @mapLoaded="loadMapHandler"/>
     <Controls @quakesLoaded="quakesLoaded"/> 
   <div id="footer" class="content has-text-centered" >
@@ -36,7 +36,7 @@ import { defineComponent }  from 'vue'
 import * as THREE from 'three';
 import * as L from 'leaflet';
 import Mapper from './Mapper.vue'
-import Controls from './Controls.vue'
+import Controls from './BungaControls.vue'
 import {cart2Geo, Quake } from '../utils/quake'
 
 /*Vue.use(Sidebar);
@@ -59,7 +59,7 @@ import { QuakeParams } from '../store/state';
 let quakes:Quake[] = []
 
 export default  defineComponent({
-  name: 'Bunga',
+  name: 'BungaBunga',
   data() {
     return {
         showDetail: false,

@@ -10,7 +10,7 @@ import { mapState } from 'vuex';
 import {cart2Geo } from '../utils/quake'
 
 export default defineComponent({
-  name: 'Mapper',
+  name: 'BungaMapper',
   props: {
     lat: Number,
     lon: Number

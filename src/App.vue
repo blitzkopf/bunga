@@ -1,45 +1,16 @@
 <template>
   <div id="app">
     <Bunga />
-    <Playbar />
+    <BungaPlaybar />
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 
 import Bunga from './components/Bunga.vue'
 //import TimeDisplay from './components/TimeDisplay.vue'
-import Playbar from './components/Playbar.vue'
+import BungaPlaybar from './components/BungaPlaybar.vue'
 
-//import VueGtag from "vue-gtag";
-//import  createApp from 'vue'
-import { Options, Vue } from 'vue-class-component';
-
-//import { Slider ,Field } from 'buefy/types'
-//import 'buefy/dist/buefy.css'
-
-/*const app = new createApp({})*/
-
-/*app.use(Slider)
-app.use(Field) */
-
-@Options({
- data: function() {
-    return {
-      time: ""
-    };
-  },
-  components: {
-    Bunga,
-    Playbar
-  },  
-  methods: {
-    updateTime(variable: number) {
-      this.time= variable;
-    }
-  }
-})
-export default class App extends Vue {}
 </script>
 
 <style>

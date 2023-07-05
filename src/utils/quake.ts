@@ -1,6 +1,6 @@
 import { QuakeParams } from '@/store/state';
 import * as THREE from 'three';
-export const earthRadius = 6731.0;
+export const earthRadius:number = 6731.0;
 
 export class Quake {
 	lat:number;
@@ -140,7 +140,7 @@ function processQuakes(quakes: Quake[],animParams:any):{quakes:Quake[],qParams:Q
 		action.play();
 		*/
 		const size=q.size * animParams.sizeMultiplier
-		s.scale.set(size,size,size)
+		s.scale.setScalar(size);
 		s.position.copy(q.pos);
 		/* Achtung : Typescript is not happy */
 		s.quake=q;
@@ -177,7 +177,7 @@ export function calculatePositions(qList:Quake[],animParams:any) {
 	for(const q of qList) {
 
 		//qList[i].pos = sphere2Cart(q.lat, q.lon, earthRadius - animParams.depthScale*q.depth)
-		q.pos = geo2Cart(q.lat,q.lon,earthRadius - animParams.depthScale*q.depth);
+		q.pos = geo2Cart(q.lat,q.lon,earthRadius - animParams.depthMultiplier*q.depth);
 		//new THREE.Vector3().setFromSpherical(new THREE.Spherical(earthRadius - animParams.depthScale*q.depth,THREE.Math.degToRad( q.lat) , THREE.Math.degToRad( q.lon)));
 
 
