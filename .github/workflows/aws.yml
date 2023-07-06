@@ -34,8 +34,8 @@ jobs:
       with:
           role-to-assume:  arn:aws:iam::160785366684:oidc-provider/token.actions.githubusercontent.com
           role-session-name: samplerolesession
-          aws-region: ${{ var.TARGET_REGION }}
+          aws-region: ${{ vars.TARGET_REGION }}
       # Upload a file to AWS s3
     - name:  Upload to
       run: |
-          aws s3 cp ./dist* s3://${{ var.TARGET_BUCKET }}/${{ var.TARGET_SUBDIR }}
+          aws s3 cp ./dist* s3://${{ vars.TARGET_BUCKET }}/${{ vars.TARGET_SUBDIR }}
