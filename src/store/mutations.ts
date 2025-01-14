@@ -1,9 +1,9 @@
 // /store/mutations.ts
 import { MutationTree } from 'vuex'
-import { State, QuakeParams } from './state'
+import { State } from './state'
 
 export enum MutationType {
-  SaveQuakeParams = 'SAVE_QUAKE_PARAMS',
+  //SaveQuakeParams = 'SAVE_QUAKE_PARAMS',
   SetAnimTime = 'SET_ANIM_TIME',
   SetAnimTimeLast = 'SET_ANIM_TIME_LAST',
   AddAnimTime = 'ADD_ANIM_TIME',
@@ -12,12 +12,10 @@ export enum MutationType {
   SetMapdepth = 'SET_MAPDEPTH',
   AdjustMapdepth = 'ADJUST_MAPDEPTH',
   SetMinQuakeSize = 'SET_MIN_QUAKE_SIZE'
-
-  
 }
 
 export type Mutations = {
-    [MutationType.SaveQuakeParams](state: State, qParams: QuakeParams): void,
+    //[MutationType.SaveQuakeParams](state: State, qParams: QuakeParams): void,
     [MutationType.SetAnimTime](state: State, time: number): void,
     [MutationType.SetAnimTimeLast](state: State, time: number): void,
     [MutationType.AddAnimTime](state: State, time: number): void,
@@ -31,10 +29,10 @@ export type Mutations = {
 
 // /store/mutation.js
 export const mutations: MutationTree<State> & Mutations = {
-  [MutationType.SaveQuakeParams](state, qParams) {
+  /*[MutationType.SaveQuakeParams](state, qParams) {
     state.quakeParams=qParams;
     state.ready=true;
-  },
+  },*/
   [MutationType.SetAnimTime](state, time) {
     state.animParams.animTime=time;
   },
