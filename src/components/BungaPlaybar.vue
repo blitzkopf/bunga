@@ -2,9 +2,9 @@
     <div>
     <section id="slider">
      <o-field id="timer" v-bind:label="displayTime">
-        <o-slider v-model="anim_params.animTime" 
-                v-bind:min="quake_params.firstTime" v-bind:max="quake_params.lastTime"
-                :tooltipAlways = "false" :tooltip="false" position="bottom"></o-slider> 
+        <o-slider v-model="anim_params.animTime" :formatter="(val) => formatTime(val)"
+                :min="quake_params.firstTime" :max="quake_params.lastTime"
+                :tooltipAlways = "true" ></o-slider> 
        
       <!-- <o-slider v-model="animTime"  :custom-formatter="val => formatTime(val)"
                 v-bind:min="firstTime" v-bind:max="lastTime"
