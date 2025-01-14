@@ -1,6 +1,8 @@
 import { ActionContext, ActionTree } from 'vuex'
 import { Mutations, MutationType } from './mutations'
 import { State } from './state'
+import { useQuakeParams } from '@/store/quake_params';
+
 
 export enum ActionTypes {
   newFrame = 'NEW_FRAME',
@@ -19,16 +21,17 @@ type ActionAugments = Omit<ActionContext<State, State>, 'commit'> & {
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 export const actions: ActionTree<State, State> & Actions = {
   async [ActionTypes.newFrame]({commit,state}) {
+        const quake_params = useQuakeParams();
 
-        if( state.ready ) {
+        if( quake_params.ready ) {
 
             const timeNow =  Date.now();
             const timeDelta = timeNow-state.animParams.timeLast;
 
-            const mplier = Number(state.quakeParams!.duration) / state.animParams.animLength;
+            const mplier = Number(quake_params.duration) / state.animParams.animLength;
             commit(MutationType.SetAnimTimeLast, timeNow);
             //state.animParams.timeLast=timeNow;
-            if( state.animParams.animTime < state.quakeParams!.lastTime! ) {
+            if( state.animParams.animTime < quake_params.lastTime! ) {
                 commit(MutationType.AddAnimTime,timeDelta * mplier*0.001);
                 //state.animParams.animTime += timeDelta * mplier*0.001;
             }

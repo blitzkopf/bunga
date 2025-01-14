@@ -1,5 +1,5 @@
 <template>
-    <div id="mapid"/>
+    <div id="mapid" ></div>
 </template>
 
 <script lang="ts">
@@ -8,6 +8,8 @@ import * as L from 'leaflet';
 import * as THREE from 'three'
 import { mapState } from 'vuex';
 import {cart2Geo } from '../utils/quake'
+import { QuakeParams, useQuakeParams } from '@/store/quake_params';
+import { SubscriptionCallbackMutation} from "pinia"
 
 export default defineComponent({
   name: 'BungaMapper',
@@ -91,26 +93,28 @@ export default defineComponent({
     }
     const rePosition = (mapView:{lat: number, lon:number,r:number}) => {
       console.log(`Re postion  ${mapView.lat} ${mapView.lon} `);
+      if( mymap === null) {
+        return;
+      }
       mymap!.setView([mapView.lat,mapView.lon], 10);//.on('moveend',moveend);
       //mymap!.panTo([mapView.lat,mapView.lon]);//.on('moveend',moveend);
       
       //context.emit('mapLoaded',canvas,mymap);
     };
+    const quake_params = useQuakeParams();
+    quake_params.$subscribe((mutation:SubscriptionCallbackMutation<QuakeParams>, state:QuakeParams) => {
+      console.log(`mutation ${mutation} state ${state}`);
+
+      // Do whatever makes sense now
+      if (Object.keys(state).length !== 0 ) {
+        mapsetup(cart2Geo(state.centerOfMass!.x,state.centerOfMass!.y,state.centerOfMass!.z));
+      }
+  });
 
     return {canvas, mymap,mapsetup,rePosition}
 
   },
-  computed: mapState(['qParams']),
-  watch: {
-    "$store.state.quakeParams"(newValue, oldValue) {
-      console.log(`Updating from ${oldValue} to ${newValue}`);
-
-      // Do whatever makes sense now
-      if (Object.keys(newValue).length !== 0 ) {
-        this.mapsetup(cart2Geo(newValue.centerOfMass.x,newValue.centerOfMass.y,newValue.centerOfMass.z));
-      }
-    },
-  }
+  //computed: mapState(['qParams']),
 })
 
 /*L.tileLayer('https://gis.lmi.is/geoserver/gwc/service/wmts?SERVICE=WMTS&REQUEST=GetCapabilities', {

@@ -7,6 +7,7 @@
       :overlay="false"
       :right="true"
     >
+    <div> 
    <h3>Skjálfti</h3>
    <table>
     <tbody>
@@ -20,19 +21,19 @@
 
     </tbody>
   </table>
-
+</div>
     </o-sidebar>
     <Mapper ref="mapper" @mapLoaded="loadMapHandler"/>
     <Controls @quakesLoaded="quakesLoaded"/> 
   <div id="footer" class="content has-text-centered" >
     <span class="credit-list">Created by <a href="mailto:blitzkopf@gmail.com">Yngvi Þór</a> using Three.js, data provided by <a href="http://www.rasmuskr.dk" target="_blank">RasmusKr</a> and <a href="https://www.vedur.is/"> Veðurstofa Íslands </a></span>
-  <span   v-html="attribution" /> 
+  <span   v-html="attribution" ></span> 
   </div>
-    </div>
+  </div>
 </template>
 
 <script lang="ts" >
-import { defineComponent }  from 'vue'
+import { defineComponent, watch }  from 'vue'
 import * as THREE from 'three';
 import * as L from 'leaflet';
 import Mapper from './Mapper.vue'
@@ -49,10 +50,12 @@ import  { TrackballControls}  from 'three/examples/jsm/controls/TrackballControl
 import { earthRadius } from '../utils/quake'
 import { loadMap } from '../utils/map'
 
-import { useStore } from '../store'
+//import { useStore } from '../store'
 import { ActionTypes } from '../store/actions'
 import { MutationType } from '../store/mutations';
-import { QuakeParams } from '../store/state';
+//import { QuakeParams } from '../store/state';
+import { useAnimParams } from '@/store/anim_params';
+import { useQuakeParams , QuakeParams} from '@/store/quake_params';
 
 //import { Mapper } from 'vuex';
 
@@ -73,7 +76,11 @@ export default  defineComponent({
     //Sidebar
   },
   setup() {
-      const store = useStore();
+      //const store = useStore();
+      const anim_params = useAnimParams();
+      const quake_params = useQuakeParams();
+
+
       //const container = ref<HTMLDOMElement>()
 
       const scene = new THREE.Scene();
@@ -109,7 +116,7 @@ export default  defineComponent({
 
       const last_intersect:THREE.Intersection<THREE.Mesh>|null = null;
 
-      store.watch((state) => state.animParams.mapdepth, 
+      watch(() => anim_params.mapdepth, 
         (newValue,oldValue) => {
           console.log(`value changes detected via vuex watch ${oldValue} -> ${newValue}`);
           const plane = earth.getObjectByName('plane');
@@ -119,29 +126,32 @@ export default  defineComponent({
           }
         });
       const setCamera= () => {
-        const store=useStore();
-        camera.position.copy ( new THREE.Vector3(-20,50,50).add(store.state.quakeParams!.centerOfMass!) );
-        camera.up.copy(store.state.quakeParams!.centerOfMass!.clone().normalize());	
-        camera.lookAt(store.state.quakeParams!.centerOfMass!);
+        //const store=useStore();
+        camera.position.copy ( new THREE.Vector3(-20,50,50).add(quake_params!.centerOfMass!) );
+        camera.up.copy(quake_params!.centerOfMass!.clone().normalize());	
+        camera.lookAt(quake_params!.centerOfMass!);
 
-        controls.target.copy(store.state.quakeParams!.centerOfMass!);
+        controls.target.copy(quake_params!.centerOfMass!);
         controls.update();
         //threeData.controls!.enablePan = false;
         //threeData.controls!.enableDamping = true;
       };
-      const quakesLoaded = (qdata:{quakes:Quake[],qParams:QuakeParams}) =>{
+    const quakesLoaded = (qdata:{quakes:Quake[],qParams:QuakeParams}) =>{
           for ( const q of quakes ) {
             qGroup.remove(q.mesh)
             q.mesh.material.dispose();
             //q.mesh.dispose();
           }
           quakes=qdata.quakes;
-          store.commit(MutationType.SaveQuakeParams,qdata.qParams);
+          /*store.commit(MutationType.SaveQuakeParams,qdata.qParams);*/
+          quake_params.setQuakeParams(qdata.qParams);
           for( const  q of quakes) {
             qGroup.add(q.mesh);
           }
           earth.add(qGroup);
           setCamera();
+          console.log(`first time  ${quake_params.firstTime}`);
+          anim_params.animTime=quake_params.firstTime;
         }
       const keyHandler = (e:KeyboardEvent) => {
         console.log("keypress:"+e.code);
@@ -157,7 +167,7 @@ export default  defineComponent({
       window.removeEventListener('keyup', this.handler);
     } */
       return {scene,camera,renderer,controls,earth,mouse, raycaster, qGroup, 
-        texture,last_intersect,setCamera,quakesLoaded};
+        texture,last_intersect,setCamera,quakesLoaded,quake_params,anim_params};
   },
   methods: {
     init: function() {
@@ -166,7 +176,10 @@ export default  defineComponent({
       document.addEventListener( 'mousemove', this.mouseMove, false );
 
       this.controls.addEventListener( 'change', this.onChange  );
-      this.$store.commit(MutationType.StartTime);
+      // this.$store.commit(MutationType.StartTime);
+      const anim_params = useAnimParams();
+
+      anim_params.startTime();
 
       //camera.position.z = earthRadius+10;
       //camera.position.addVectors ( qParams.centerOfMass, new THREE.Vector(10,0,0));
@@ -211,15 +224,16 @@ export default  defineComponent({
       requestAnimationFrame( this.animate );
       //if('centerOfMass' in  this.$store.state.qParams 
       //  && typeof this.$store.state.qParams.centerOfMass === 'object')
-      const store = useStore();  
-      if(store.state.ready)
+      //const store = useStore();  
+      if(this.quake_params.ready)
       {
+        this.anim_params.newFrame();
+        
 
-        store.dispatch(ActionTypes.newFrame);
 
         //let quakes = quakes;
         for(const q of quakes) {
-          q.setVisParams(store.state.animParams.animTime,store.state.animParams);
+          q.setVisParams(this.anim_params.animTime,this.anim_params);
           //q.mesh.material.update();
           //q.mixer.setTime(animTime.getTime()/1000);         
         }

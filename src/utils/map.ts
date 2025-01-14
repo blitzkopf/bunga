@@ -3,7 +3,8 @@ import * as L from 'leaflet';
 
 import * as THREE from 'three';
 import { Plane } from 'three';
-import { useStore } from '../store'
+//import { useStore } from '../store'
+import { useAnimParams } from '@/store/anim_params';
 
 
 
@@ -55,8 +56,8 @@ function calcGeometry(map:L.Map):THREE.PolyhedronGeometry {
 
 export function loadMap(earth:THREE.Object3D,canvas:HTMLCanvasElement,map:L.Map):THREE.CanvasTexture
 {
-    const store=useStore();
-    const depth = store.getters.mapRadius;
+    const anim_params=useAnimParams();
+    const depth = anim_params.mapRadius;
     const geometry = calcGeometry(map);
     if( plane !== null) {
         earth.remove(plane);
