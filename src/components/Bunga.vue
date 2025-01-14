@@ -1,13 +1,13 @@
 <template>
   <div id="container" ref="container" class="content" >
+    <div>
     <o-sidebar
       :open = "true"
-      v-show = "showDetail"
+      :active = "showDetail"
       :fullheight="false"
       :overlay="false"
-      :right="true"
+      position="right"
     >
-    <div> 
    <h3>Skjálfti</h3>
    <table>
     <tbody>
@@ -18,16 +18,17 @@
       <tr> <td class="qi-desc">Stærð</td> <td class="qi-detail">{{ qDetail.size  }}</td></tr>
       <!-- <tr> <td class="qi-desc">Staður</td> <td class="qi-detail">{{qDetail.loc_info.dist}} km {{qDetail.loc_info.dir}} {{qDetail.loc_info.name}}</td></tr> -->
       <tr> <td class="qi-desc">Gæði</td> <td class="qi-detail">{{ qDetail.quality }}</td></tr>
-
     </tbody>
   </table>
-</div>
     </o-sidebar>
+  </div>
+  <div>  
     <Mapper ref="mapper" @mapLoaded="loadMapHandler"/>
     <Controls @quakesLoaded="quakesLoaded"/> 
   <div id="footer" class="content has-text-centered" >
-    <span class="credit-list">Created by <a href="mailto:blitzkopf@gmail.com">Yngvi Þór</a> using Three.js, data provided by <a href="http://www.rasmuskr.dk" target="_blank">RasmusKr</a> and <a href="https://www.vedur.is/"> Veðurstofa Íslands </a></span>
+    <span class="credit-list">Created by <a href="mailto:blitzkopf@gmail.com">Yngvi Þór</a> using Three.js, data provided by <a href="https://www.vedur.is/"> Veðurstofa Íslands </a></span>
   <span   v-html="attribution" ></span> 
+  </div>
   </div>
   </div>
 </template>

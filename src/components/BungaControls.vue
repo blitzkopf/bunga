@@ -63,8 +63,9 @@
 Also see the Icelandic Meteorological Institute <a href="https://www.vedur.is/skjalftar-og-eldgos/jardskjalftar/reykjanesskagi/">  Reykjanes page</a> <br>
 <div class="fb-like" data-href="http://blitzkopf.github.io/" data-layout="button_count" data-action="like" data-show-faces="true" data-share="true"></div>
  <div id="credits">
-<p class="credit-list">Created by <a href="mailto:blitzkopf@gmail.com">Yngvi Þór</a> using WebGL, inspired by <a href="http://baering.github.io">3dBulge</a> 
- data provided by <a href="http://www.rasmuskr.dk" target="_blank">RasmusKr</a> and <a href="https://www.vedur.is/"> Veðurstofa Íslands </a>
+<p class="credit-list">Created by <a href="mailto:blitzkopf@gmail.com">Yngvi Þór</a> using WebGL, inspired by <a href="http://baering.github.io">3dBulge</a>.
+<br>
+Data provided by <a href="https://www.vedur.is/"> Veðurstofa Íslands </a>
 </p>
 	</div>
 	</div>
